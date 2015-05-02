@@ -8,12 +8,12 @@ function EventLog(storage)
 	this.log = [];
 }
 
-EventLog.prototype.registerEvent(event)
+EventLog.prototype.registerEvent =function(event)
 {
 	this.log.push(event);
 }
 
-EventLog.prototype.undo()
+EventLog.prototype.undo = function()
 {
 	return this.log.unshift();
 }

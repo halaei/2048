@@ -1,7 +1,7 @@
 /**
  * Cell Class
 **/
-function Cell(row, rank, tile = null)
+function Cell(row, rank, tile)
 {
 	this.row = row;
 	this.rank = rank;

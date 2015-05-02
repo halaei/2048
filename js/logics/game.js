@@ -41,11 +41,11 @@ Game.prototype.play = function()
 {
 	this.onMove = function(directions)
 	{
-		function step(game, directions)
+		function step(game, direction)
 		{
 			return false;
 		}
-		while(step(this, directions));
+		while(step(this, directions[0]) + step(this, directions[1]));
 	}
 	this.opUndo = function()
 	{
