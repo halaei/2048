@@ -7,6 +7,11 @@ function Cell(row, rank, tile)
 	this.rank = rank;
 	this.setTile(tile);
 }
+Cell.prototype.locationId = function()
+{
+	return this.row * this.row + this.rank;
+}
+
 Cell.prototype.direction = function(){
 	return this.rank % 2 == 0 ? 1 : 0;
 };
