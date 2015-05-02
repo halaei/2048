@@ -7,12 +7,12 @@ function Tile(value, direction)
 	this.direction = direction;
 }
 
-Tile.prototype.roll()
+Tile.prototype.roll = function()
 {
-	this.direction = 1 - direction;
+	this.direction = 1 - this.direction;
 }
 
-Tile.prototype.merge()
+Tile.prototype.merge = function()
 {
 	this.value *= 2;
 }

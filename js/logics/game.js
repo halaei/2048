@@ -22,7 +22,7 @@ Game.prototype.registerControllers = function()
 	}
 }
 
-Game.prototype.randomInsertTile()
+Game.prototype.randomInsertTile = function()
 {
 		var location = this.getRandomAvailableCell();
 		var cell = this.cells[location[0]][location[1]];
@@ -41,9 +41,38 @@ Game.prototype.play = function()
 {
 	this.onMove = function(directions)
 	{
+		this.grid.changeLuckOfAllCells(false);
 		function step(game, direction)
 		{
-			return false;
+			var cells = game.grid.iterateInDirection(direction);
+			var changeCount = 0;
+			for(var i = 0; i < cells.length; i++)
+			{
+				if(! cells[i].locked && ! cells[i].tile != null)
+				{
+					var neighbor = cells[i].neighbor(direction);
+					if(neighbor != null)
+					{
+						if(neighbor.tile == null)
+						{
+							//move tile to empty neighbor
+							cells[i].tile.roll();
+							neighbor.tile = cells[i].tile;
+							cells[i].tile = null;
+							changeCount++;
+						}
+						else if(neighbor.tile.value == cells[i].tile.value)
+						{
+							//merge tile with neighbor
+							neighbor.tile.merge();
+							neighbor.tile.lock = true;
+							cells[i].tile = null;
+							changeCount++;
+						}
+					}
+				}
+			}
+			return changeCount;
 		}
 		while(step(this, directions[0]) + step(this, directions[1]));
 	}

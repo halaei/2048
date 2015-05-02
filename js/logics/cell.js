@@ -6,6 +6,7 @@ function Cell(row, rank, tile)
 	this.row = row;
 	this.rank = rank;
 	this.setTile(tile);
+	this.locked = false;
 }
 Cell.prototype.locationId = function()
 {
