@@ -1,18 +1,20 @@
 /**
  * Tile Class
 **/
-function Tile(value, direction)
+function Tile(value)
 {
 	this.value = value;
-	this.direction = direction;
+	this.cell = null;
 }
 
-Tile.prototype.roll = function()
+Tile.prototype.roll= function(dst)
 {
-	this.direction = 1 - this.direction;
+    this.cell.empty();
+    dst.setTile(this);
 };
 
-Tile.prototype.merge = function()
+Tile.prototype.merge = function(dst)
 {
-	this.value *= 2;
+	this.value += dst.tile.value;
+    this.roll(dst);
 };

@@ -10,7 +10,7 @@ function Grid(size)
 		this.cells[i] = [];
 		for(var j = 0; j < 2 * i + 1; j++)
 		{
-			this.cells[i][j] = new Cell(i, j, null);
+			this.cells[i][j] = new Cell(i, j);
 		}
 	}
 }
