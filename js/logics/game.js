@@ -16,26 +16,27 @@ function Game(grid, eventLog, controllers, view)
 
 Game.prototype.registerControllers = function()
 {
-	for(var i = 0; i < this.controllers.size; i++)
+	for(var i = 0; i < this.controllers.length; i++)
 	{
 		this.controllers[i].register(this);
 	}
-}
+};
 
 Game.prototype.randomInsertTile = function()
 {
 		var location = this.getRandomAvailableCell();
 		var cell = this.cells[location[0]][location[1]];
 		cell.setTile(new Tile(2, cell.direction()));
-}
+};
+
 Game.prototype.initTiles = function()
 {
-	this.tiles = new Array();
+	this.tiles = [];
 	for(var i = 0; i < this.initNumberOfTiles; i++)
 	{
 		this.randomInsertTile();
 	}
-}
+};
 
 Game.prototype.play = function()
 {
@@ -75,31 +76,31 @@ Game.prototype.play = function()
 			return changeCount;
 		}
 		while(step(this, directions[0]) + step(this, directions[1]));
-	}
+	};
 	this.opUndo = function()
 	{
 		
-	}
+	};
 	
 	this.onPlayback = function()
 	{
 		//do nothing
-	}
+	};
 
-}
+};
 
 Game.prototype.gameOver = function()
 {
 	this.onMove = function(directions)
 	{
 		//do nothing
-	}
+	};
 	this.opUndo = function()
 	{
 		//do nothing
-	}
+	};
 	this.onPlayback = function()
 	{
 
-	}
-}
+	};
+};

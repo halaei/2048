@@ -11,7 +11,7 @@ function Cell(row, rank, tile)
 Cell.prototype.locationId = function()
 {
 	return this.row * this.row + this.rank;
-}
+};
 
 Cell.prototype.direction = function()
 {

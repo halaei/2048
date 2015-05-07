@@ -10,9 +10,9 @@ function Tile(value, direction)
 Tile.prototype.roll = function()
 {
 	this.direction = 1 - this.direction;
-}
+};
 
 Tile.prototype.merge = function()
 {
 	this.value *= 2;
-}
+};
