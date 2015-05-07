@@ -13,10 +13,12 @@ Cell.prototype.locationId = function()
 	return this.row * this.row + this.rank;
 }
 
-Cell.prototype.direction = function(){
-	return this.rank % 2 == 0 ? 1 : 0;
+Cell.prototype.direction = function()
+{
+	return this.rank % 2;
 };
 
-Cell.prototype.setTile = function(tile) {
+Cell.prototype.setTile = function(tile)
+{
 	this.tile = tile;
 };

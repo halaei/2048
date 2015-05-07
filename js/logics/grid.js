@@ -117,13 +117,13 @@ Grid.prototype.neighbor = function(cell, direction)
 {
 	switch(direction)
 	{
-		case 0: return (cell.direction() == 1) ? ( this.cells[cell.row - 1][cell.rank - 1] ) : 0;
-		case 1: return (cell.rank < (2 * cell.row) && cell.direction() == 0) ? ( this.cells[cell.row][cell.rank + 1] ) : 0
+		case 0: return (cell.direction() == 1) ? ( this.cells[cell.row - 1][cell.rank - 1] ) : null;
+		case 1: return (cell.rank < (2 * cell.row) && cell.direction() == 0) ? ( this.cells[cell.row][cell.rank + 1] ) : null
 
-		case 2: return (cell.direction() == 1) ? ( this.cells[cell.row][cell.rank + 1] ) : 0;
-		case 3: return (cell.row < this.size - 1 && cell.direction() == 0) ? ( this.cells[cell.row + 1][cell.rank + 1] ) : 0
+		case 2: return (cell.direction() == 1) ? ( this.cells[cell.row][cell.rank + 1] ) : null;
+		case 3: return (cell.row < this.size - 1 && cell.direction() == 0) ? ( this.cells[cell.row + 1][cell.rank + 1] ) : null
 
-		case 4: return (cell.direction() == 1) ? ( this.cells[cell.row][cell.rank - 1] ) : 0;
-		case 5: return (cell.rank > 0 && cell.direction() == 0) ? ( this.cells[cell.row][cell.rank - 1] ) : 0
+		case 4: return (cell.direction() == 1) ? ( this.cells[cell.row][cell.rank - 1] ) : null;
+		case 5: return (cell.rank > 0 && cell.direction() == 0) ? ( this.cells[cell.row][cell.rank - 1] ) : null
 	}
 }
