@@ -22,7 +22,7 @@ Grid.prototype.getRandomAvailableCell = function()
 	{
 		for(var rank = 0; rank < 2 * row + 1; rank++)
 		{
-			if(this.cells[row][rank] === null)
+			if(this.cells[row][rank].tile === null)
 			{
 				emptyCells.push([row, rank]);
 			}

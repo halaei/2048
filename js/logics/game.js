@@ -24,8 +24,8 @@ Game.prototype.registerControllers = function()
 
 Game.prototype.randomInsertTile = function()
 {
-		var location = this.getRandomAvailableCell();
-		var cell = this.cells[location[0]][location[1]];
+		var location = this.grid.getRandomAvailableCell();
+		var cell = this.grid.cells[location[0]][location[1]];
 		cell.setTile(new Tile(2));
 };
 
