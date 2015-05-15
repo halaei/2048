@@ -24,18 +24,21 @@ Game.prototype.registerControllers = function()
 
 Game.prototype.randomInsertTile = function()
 {
-		var location = this.grid.getRandomAvailableCell();
-		var cell = this.grid.cells[location[0]][location[1]];
-		cell.setTile(new Tile(2));
+    var location = this.grid.getRandomAvailableCell();
+    var cell = this.grid.cells[location[0]][location[1]];
+    cell.setTile(new Tile(2));
+    return new RandomInsertionEvent(cell);
 };
 
 Game.prototype.initTiles = function()
 {
 	this.tiles = [];
+    var events = [];
 	for(var i = 0; i < this.initNumberOfTiles; i++)
 	{
-		this.randomInsertTile();
+		events.push(this.randomInsertTile());
 	}
+    this.view.dispatchEvents(events);
 };
 
 Game.prototype.play = function()
@@ -43,44 +46,38 @@ Game.prototype.play = function()
 	this.onMove = function(directions)
 	{
 		this.grid.changeLuckOfAllCells(false);
-		function step(game, direction)
-		{
-			var cells = game.grid.iterateInDirection(direction);
-			var events = [];
-			for(var i = 0; i < cells.length; i++)
-			{
-				if(! cells[i].locked && ! cells[i].tile != null)
-				{
-					var neighbor = cells[i].neighbor(direction);
-					if(neighbor != null)
-					{
-						if(neighbor.tile == null)
-						{
-							//move tile to empty neighbor
-							cells[i].tile.roll(neighbor);
-                            events.push(new RollEvent(cells[i], neighbor));
-						}
-						else if(neighbor.tile.value == cells[i].tile.value)
-						{
-							//merge tile with neighbor
-							cells[i].tile.merge(neighbor);
-                            events.push(new RollAndMergeEvent(cells[i], neighbor));
-						}
-					}
-				}
-			}
-			return events;
-		}
-		while(step(this, directions[0]) + step(this, directions[1]));
+        var ctrl_event = new ControlEvent(directories);
+        var events = [ctrl_event];
+        var child_events = [];
+        var cnt = 0;
+        do {
+            cnt = child_events.length;
+            child_events = child_events.concat(this.grid.step(directions[0]), this.grid.step(directions[1]));
+        } while(child_events.length > cnt);
+
+        ctrl_event.setChildEvents(child_events);
+
+        events.push(this.randomInsertTile());
+
+        if(this.grid.gameIsOver())
+        {
+            events.push(new GameOverEvent());
+            this.gameOver();
+        }
+
+        this.eventLog.registerEvents(events);
+        this.view.dispatchEvents(events);
 	};
-	this.opUndo = function()
+
+	this.onUndo = function()
 	{
-		
+		var events = this.eventLog.undo();
+        return events;
 	};
 	
 	this.onPlayback = function()
 	{
-		//do nothing
+		
 	};
 
 };

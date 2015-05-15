@@ -21,15 +21,20 @@ function RandomInsertionEvent(dst_cell)
     this.dst_cell = dst_cell;
 }
 
+function GameOverEvent()
+{
+
+}
+
 RandomInsertionEvent.prototype.score = RollAndMergeEvent.prototype.score;
 
-function ControlEvent(direction)
+function ControlEvent(directions)
 {
-    this.direction = direction;
+    this.directions = directions;
     this.child_events = [];
 }
 
-ControlEvent.prototype.addChildEvent = function(event)
+ControlEvent.prototype.setChildEvents = function(events)
 {
-    this.child_events.push(event);
+    this.child_events = events;
 }

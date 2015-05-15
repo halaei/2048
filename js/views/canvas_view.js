@@ -6,6 +6,11 @@ function CanvasView()
 	
 }
 
+CanvasView.prototype.dispatchEvents = function(events)
+{
+
+}
+
 CanvasView.prototype.onNewRandomTile = function(row, rank, value)
 {
 	
