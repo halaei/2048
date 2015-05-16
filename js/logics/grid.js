@@ -155,7 +155,7 @@ Grid.prototype.step = function(direction)
                     cells[i].tile.roll(neighbor);
                     events.push(new RollEvent(cells[i], neighbor));
                 }
-                else if(neighbor.tile.value == cells[i].tile.value)
+                else if(! neighbor.locked && neighbor.tile.value == cells[i].tile.value)
                 {
                     //merge tile with neighbor
                     cells[i].tile.merge(neighbor);
