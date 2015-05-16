@@ -116,7 +116,6 @@ Grid.prototype.changeLuckOfAllCells = function(locked)
 	locked = locked ? true : false;
 	for(var i = 0; i < this.size; i++)
 	{
-		this.cells[i] = [];
 		for(var j = 0; j < 2 * i + 1; j++)
 		{
 			this.cells[i][j].locked = locked;
@@ -145,9 +144,9 @@ Grid.prototype.step = function(direction)
     var events = [];
     for(var i = 0; i < cells.length; i++)
     {
-        if(! cells[i].locked && ! cells[i].tile != null)
+        if(! cells[i].locked && cells[i].tile != null)
         {
-            var neighbor = cells[i].neighbor(direction);
+            var neighbor = this.neighbor(cells[i], direction);
             if(neighbor != null)
             {
                 if(neighbor.tile == null)
@@ -168,7 +167,7 @@ Grid.prototype.step = function(direction)
     return events;
 }
 
-Game.prototype.gameIsOver = function()
+Grid.prototype.gameIsOver = function()
 {
     var non_empties = this.getEmptyCells();
     if(non_empties.length < this.numverOfCells())

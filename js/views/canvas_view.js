@@ -1,9 +1,10 @@
 /**
  * CanvasView Class
 **/
-function CanvasView()
+function CanvasView(canvas)
 {
-	
+	this.canvas = canvas;
+    this.context = canvas.getContext("2d");
 }
 
 CanvasView.prototype.dispatchEvents = function(events)

@@ -45,8 +45,9 @@ Game.prototype.play = function()
 {
 	this.onMove = function(directions)
 	{
+        console.log(directions);
 		this.grid.changeLuckOfAllCells(false);
-        var ctrl_event = new ControlEvent(directories);
+        var ctrl_event = new ControlEvent(directions);
         var events = [ctrl_event];
         var child_events = [];
         var cnt = 0;
@@ -77,7 +78,7 @@ Game.prototype.play = function()
 	
 	this.onPlayback = function()
 	{
-		
+
 	};
 
 };
