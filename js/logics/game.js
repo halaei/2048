@@ -56,6 +56,12 @@ Game.prototype.play = function()
             child_events = child_events.concat(this.grid.step(directions[0]), this.grid.step(directions[1]));
         } while(child_events.length > cnt);
 
+        if(child_events.length == 0)
+        {
+            //nothing moved!
+            return;
+        }
+
         ctrl_event.setChildEvents(child_events);
 
         events.push(this.randomInsertTile());

@@ -50,17 +50,19 @@ CanvasView.prototype.draw = function()
         {
             var n = 2 * i + 1;
             var x = stripes[0][i].x;
-            var y0 = stripes[0][i].y + radius;
-            var y1 = stripes[0][i + 1].y - radius;
+            var y = [
+                stripes[0][i].y + radius,
+                stripes[0][i + 1].y - radius
+                ];
             for(var j = 0; j < n; j++)
             {
-                writeText(self.context, self.grid[i][j], x, j % 2 ? y1 : y0);
-
-                var triangle = makeRegularPolygon(3, radius, x, j % 2 ? y1 : y0, j % 2 ? Math.PI / 2 : - Math.PI / 2);
+                var triangle = makeRegularPolygon(3, radius, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
                 drawPolygon(self.context, triangle, "red");
 
-                var triangle = makeRegularPolygon(3, radius * .85, x, j % 2 ? y1 : y0, j % 2 ? Math.PI / 2 : - Math.PI / 2);
+                var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
                 drawPolygon(self.context, triangle, "blue");
+
+                writeText(self.context, self.grid[i][j], x, y[j % 2]);
                 x += size/2;
 
             }
@@ -71,9 +73,42 @@ CanvasView.prototype.draw = function()
     drawTiles();
 }
 
+CanvasView.prototype.handleRollEvent = function(event)
+{
+    this.grid[event.src_cell.row][event.src_cell.rank] = 0;
+    this.grid[event.dst_cell.row][event.dst_cell.rank] = event.value;
+};
+
+CanvasView.prototype.handleRollAndMergeEvent = function(event)
+{
+    this.grid[event.src_cell.row][event.src_cell.rank] = 0;
+    this.grid[event.dst_cell.row][event.dst_cell.rank] = event.value;
+};
+
+CanvasView.prototype.handleRandomInsertionEvent = function(event)
+{
+    this.grid[event.dst_cell.row][event.dst_cell.rank] = event.dst_cell.tile.value;
+};
+
+CanvasView.prototype.handleGameOverEvent = function(event)
+{
+    console.log("game is over");
+};
+
+CanvasView.prototype.handleControlEvent = function(event)
+{
+    this.dispatchEvents(event.child_events);
+};
+
+
+
 CanvasView.prototype.dispatchEvents = function(events)
 {
-
+    for(var i = 0; i < events.length; i++)
+    {
+        events[i].handle(this);
+    }
+    this.draw();
 };
 
 CanvasView.prototype.onNewRandomTile = function(row, rank, value)

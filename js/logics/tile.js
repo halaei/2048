@@ -17,4 +17,5 @@ Tile.prototype.merge = function(dst)
 {
 	this.value += dst.tile.value;
     this.roll(dst);
+    dst.locked = true;
 };

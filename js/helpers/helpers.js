@@ -41,6 +41,8 @@ function drawPolygon(context, points, color)
         context.lineTo(points[i].x, points[i].y);
     }
 
+    context.fillStyle = "white";
+    context.fill();
     context.strokeStyle = color;
     context.lineWidth = 1;
     context.stroke();
