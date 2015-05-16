@@ -12,22 +12,16 @@ function RollAndMergeEvent(src_cell, dst_cell)
     this.value = dst_cell.tile.value;
 }
 
-RollAndMergeEvent.prototype.score = function()
-{
-    return this.value;
-};
-
 function RandomInsertionEvent(dst_cell)
 {
     this.dst_cell = dst_cell;
+    this.value = dst_cell.tile.value;
 }
 
 function GameOverEvent()
 {
 
 }
-
-RandomInsertionEvent.prototype.score = RollAndMergeEvent.prototype.score;
 
 function ControlEvent(directions)
 {

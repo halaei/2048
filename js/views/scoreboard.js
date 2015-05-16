@@ -15,10 +15,20 @@ Scorboard.prototype.increaseScore = function(increment)
         this.highscore = this.score;
     }
     this.showScore();
-}
+};
 
 Scorboard.prototype.showScore = function()
 {
     this.score_div.innerHTML = this.score;
     this.highscore_div.innerHTML = this.highscore;
+};
+
+Scorboard.prototype.handleRollAndMergeEvent = function(event)
+{
+    this.increaseScore(event.value);
+};
+
+Scorboard.prototype.handleRandomInsertionEvent = function(event)
+{
+    this.increaseScore(event.value);
 }
