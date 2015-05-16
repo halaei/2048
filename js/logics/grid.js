@@ -34,7 +34,7 @@ Grid.prototype.getEmptyCells = function()
         }
     }
     return emptyCells;
-}
+};
 
 Grid.prototype.getRandomAvailableCell = function()
 {

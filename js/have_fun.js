@@ -12,5 +12,5 @@ function haveFun()
 		[
 			new CanvasController(controller),
 		],
-		new CanvasView(view));
+		new CanvasView(view, 4));
 }
