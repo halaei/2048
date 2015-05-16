@@ -35,11 +35,6 @@ function ControlEvent(directions)
     this.child_events = [];
 }
 
-ControlEvent.prototype.setChildEvents = function(events)
-{
-    this.child_events = events;
-}
-
 function registerEvents()
 {
     var events = [

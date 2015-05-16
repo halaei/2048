@@ -97,18 +97,7 @@ CanvasView.prototype.handleGameOverEvent = function(event)
 
 CanvasView.prototype.handleControlEvent = function(event)
 {
-    this.dispatchEvents(event.child_events);
-};
 
-
-
-CanvasView.prototype.dispatchEvents = function(events)
-{
-    for(var i = 0; i < events.length; i++)
-    {
-        events[i].handle(this);
-    }
-    this.draw();
 };
 
 CanvasView.prototype.onNewRandomTile = function(row, rank, value)

@@ -2,13 +2,22 @@
 /**
  * Game Class
 **/
-function Game(grid, eventLog, controllers, view)
+function Game(grid, eventLog, controllers, view, scoreboard)
 {
 	this.grid = grid;
-	this.eventLog = eventLog;
 	this.controllers = controllers;
 	this.registerControllers();
+
 	this.view = view;
+	this.eventLog = eventLog;
+    this.scoreboard = scoreboard;
+
+    this.observers = [
+        this.view,
+        this.eventLog,
+        this.scoreboard,
+    ];
+
 	this.initNumberOfTiles = 2;
 	this.initTiles();
 	this.play();
@@ -38,14 +47,13 @@ Game.prototype.initTiles = function()
 	{
 		events.push(this.randomInsertTile());
 	}
-    this.view.dispatchEvents(events);
+    this.dispatchEvents(events);
 };
 
 Game.prototype.play = function()
 {
 	this.onMove = function(directions)
 	{
-        console.log(directions);
 		this.grid.changeLuckOfAllCells(false);
         var ctrl_event = new ControlEvent(directions);
         var events = [ctrl_event];
@@ -62,7 +70,7 @@ Game.prototype.play = function()
             return;
         }
 
-        ctrl_event.setChildEvents(child_events);
+        events = events.concat(child_events);
 
         events.push(this.randomInsertTile());
 
@@ -72,8 +80,7 @@ Game.prototype.play = function()
             this.gameOver();
         }
 
-        this.eventLog.registerEvents(events);
-        this.view.dispatchEvents(events);
+        this.dispatchEvents(events);
 	};
 
 	this.onUndo = function()
@@ -103,4 +110,16 @@ Game.prototype.gameOver = function()
 	{
 
 	};
+};
+
+Game.prototype.dispatchEvents = function(events)
+{
+    for(var i = 0; i < events.length; i++)
+    {
+        for(var j = 0; j < this.observers.length; j++)
+        {
+            events[i].handle(this.observers[j]);
+        }
+    }
+    this.view.draw();
 };
