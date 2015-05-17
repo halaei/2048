@@ -35,3 +35,23 @@ EventLog.prototype.undo = function()
     }
 	return events;
 };
+
+EventLog.prototype.handleRollEvent = function(event)
+{
+};
+
+EventLog.prototype.handleRollAndMergeEvent = function(event)
+{
+};
+
+EventLog.prototype.handleRandomInsertionEvent = function(event)
+{
+};
+
+EventLog.prototype.handleGameOverEvent = function(event)
+{
+};
+
+EventLog.prototype.handleControlEvent = function(event)
+{
+};

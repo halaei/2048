@@ -8,11 +8,12 @@ function haveFun()
     var controller = game_div.getElementsByClassName("canvas_controller")[0];
     var score = game_div.getElementsByClassName("score")[0];
     var highscore = game_div.getElementsByClassName("highscore")[0];
+    var storage = new LocalStorageManager();
 	return new Game(
 		new Grid(4),
-		new EventLog(new LocalStorageManager()),
+		new EventLog(storage),
 		[new CanvasController(controller)],
 		new CanvasView(view, 4),
-        new Scorboard(score, highscore, 0, 0)
+        new Scorboard(score, highscore, 0, storage)
     );
 }

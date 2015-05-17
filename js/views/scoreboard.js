@@ -1,9 +1,10 @@
-function Scorboard(score_div, highscore_div, score, highscore)
+function Scorboard(score_div, highscore_div, score, storage)
 {
     this.score_div = score_div;
     this.highscore_div = highscore_div;
     this.score = score;
-    this.highscore = highscore;
+    this.storage = storage;
+    this.highscore = storage.getBestScore();
     this.showScore();
 }
 
@@ -13,6 +14,7 @@ Scorboard.prototype.increaseScore = function(increment)
     if(this.highscore < this.score)
     {
         this.highscore = this.score;
+        this.storage.setBestScore(this.score);
     }
     this.showScore();
 };
