@@ -56,13 +56,14 @@ CanvasView.prototype.draw = function()
                 ];
             for(var j = 0; j < n; j++)
             {
+                var tile_style = new TileStyle(self.grid[i][j]);
                 var triangle = makeRegularPolygon(3, radius, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
                 drawPolygon(self.context, triangle, "red");
 
                 var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
-                drawPolygon(self.context, triangle, "blue");
+                drawPolygon(self.context, triangle, tile_style.line_style, tile_style.fill_style);
 
-                writeText(self.context, self.grid[i][j], x, y[j % 2]);
+                writeText(self.context, self.grid[i][j], x, y[j % 2], tile_style.font, tile_style.font_style);
                 x += size/2;
 
             }
@@ -107,5 +108,28 @@ CanvasView.prototype.onNewRandomTile = function(row, rank, value)
 
 CanvasView.prototype.onGameOver = function()
 {
- 
 };
+
+var fill_colors = {
+        0: 'white',
+        2: 'darkgray',
+        4: 'darkcyan',
+        8: 'darkgreen',
+        16: 'darkmagenta',
+        32: 'darkorange',
+        64: 'darkred',
+        128: 'skyblue',
+        256: 'springgreen',
+        512: 'magenta',
+        1024: 'orange',
+        2048: 'red'
+    };
+
+function TileStyle(value)
+{
+    this.fill_style =
+        value <= 2048 ? fill_colors[value]:'black';
+    this.font_style = value == 0 ? 'gray' : value <= 2048 ? 'black' : 'white';
+    this.font = value < 100 ? "30px Arial" : value < 1000 ? "20px Arial" : "15px Arial";
+    this.line_style = 'blue';
+}

@@ -32,8 +32,11 @@ function makeRegularPolygon(numberOfSides, radius, Xcenter, Ycenter, startAngle)
     return points;
 }
 
-function drawPolygon(context, points, color)
+function drawPolygon(context, points, lineStyle, fillStyle)
 {
+    if(fillStyle === undefined) {
+        fillStyle = 'white';
+    }
     context.beginPath();
     context.moveTo(points[0].x, points[0].y);
 
@@ -41,9 +44,9 @@ function drawPolygon(context, points, color)
         context.lineTo(points[i].x, points[i].y);
     }
 
-    context.fillStyle = "white";
+    context.fillStyle = fillStyle;
     context.fill();
-    context.strokeStyle = color;
+    context.strokeStyle = lineStyle;
     context.lineWidth = 1;
     context.stroke();
 }
@@ -101,10 +104,11 @@ function partitionToStripes(triangle, n)
     return [lefts, rights];
 }
 
-function writeText(context, text, centerX, centerY)
+function writeText(context, text, centerX, centerY, font, fontStyle)
 {
     context.textAlign = "center";
     context.textBaseline = 'middle'
-    context.fillStyle = "black";
+    context.fillStyle = fontStyle;
+    context.font = font;
     context.fillText(text, centerX, centerY);
 }
