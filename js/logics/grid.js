@@ -48,67 +48,17 @@ Grid.prototype.getRandomAvailableCell = function()
 
 Grid.prototype.iterateInDirection = function(direction)
 {
-	function iterate0(grid)
-	{
-		var cells = [];
-		for(var i = 0; i < grid.size; i++)
-		{
-			for(var j = 0; j < 2 * i + 1; j++)
-			{
-				cells.push(grid.cells[i][j]);
-			}
-		}
-		return cells;
-	}
-	function iterate1(grid)
-	{
-		var cells = [];
-		for(var i = 0; i < grid.size; i++)
-		{
-			for(var j = 0; j < 2 * (grid.size - i) - 1; j++)
-			{
-				var row = Math.floor((j + 1) / 2) + i;
-				var rowSize = row * 2 + 1;
-				var rank = rowSize - (2 * i) - (j % 2) - 1;
-				cells.push(grid.cells[row][rank]);
-			}
-		}
-		return cells;
-	}
-
-	function iterate2(grid)
-	{
-		var cells = [];
-		for(var i = grid.size - 1; i >= 0; i--)
-		{
-			for(var j = (grid.size - i - 1) * 2; j >= 0; j--)
-			{
-				var jp = (grid.size - i - 1) * 2 - j + 1;
-				var row = i + Math.floor(jp / 2);
-				var rank = 2 * i + (j % 2);
-				cells.push(grid.cells[row][rank]);
-			}
-		}
-		return cells;
-	}
-
-	function iterate3(grid)
-	{
-		return iterate0(grid).reverse();
-	}
-
-	function iterate4(grid)
-	{
-		return iterate1(grid).reverse();
-	}
-
-	function iterate5(grid)
-	{
-		return iterate2(grid).reverse();
-	}
-
-	var iterators = [iterate0, iterate1, iterate2, iterate3, iterate4, iterate5];
-	return iterators[direction](this);
+    var cells = [];
+    var top_first = [1, 0, 0, 0, 1, 1][direction];
+    var left_first = [0, 0, 0, 1, 1, 1][direction];
+    for(var i = top_first ? 0 : this.size - 1; i >= 0 && i < this.size; top_first ? i++ : i--)
+    {
+        for(var j = left_first ? 0 : 2 * i; j>= 0 && j <= 2 * i; left_first ? j++ : j--)
+        {
+            cells.push(this.cells[i][j]);
+        }
+    }
+    return cells;
 };
 
 Grid.prototype.changeLuckOfAllCells = function(locked)
@@ -125,17 +75,32 @@ Grid.prototype.changeLuckOfAllCells = function(locked)
 
 Grid.prototype.neighbor = function(cell, direction)
 {
-	switch(direction)
-	{
-		case 0: return (cell.direction() == 1) ? ( this.cells[cell.row - 1][cell.rank - 1] ) : null;
-		case 1: return (cell.rank < (2 * cell.row) && cell.direction() == 0) ? ( this.cells[cell.row][cell.rank + 1] ) : null;
+    if(cell.isPointingDown()) {
+        switch(direction)
+        {
+            case 0: return this.cells[cell.row - 1][cell.rank - 1];
+            case 1: return this.cells[cell.row][cell.rank + 1];
 
-		case 2: return (cell.direction() == 1) ? ( this.cells[cell.row][cell.rank + 1] ) : null;
-		case 3: return (cell.row < this.size - 1 && cell.direction() == 0) ? ( this.cells[cell.row + 1][cell.rank + 1] ) : null;
+            case 2: return this.cells[cell.row][cell.rank + 1];
+            case 3: return this.cells[cell.row][cell.rank - 1];
 
-		case 4: return (cell.direction() == 1) ? ( this.cells[cell.row][cell.rank - 1] ) : null;
-		case 5: return (cell.rank > 0 && cell.direction() == 0) ? ( this.cells[cell.row][cell.rank - 1] ) : null;
-	}
+            case 4: return this.cells[cell.row][cell.rank - 1];
+            case 5: return this.cells[cell.row - 1][cell.rank - 1];
+        }
+    } else {
+        switch(direction)
+        {
+            case 0: return (cell.rank < 2 * cell.row) ? this.cells[cell.row][cell.rank + 1] : null;
+            case 1: return (cell.rank < 2 * cell.row) ? this.cells[cell.row][cell.rank + 1] : null;
+
+            case 2: return (cell.row < this.size - 1) ? this.cells[cell.row + 1][cell.rank + 1] : null;
+            case 3: return (cell.row < this.size - 1) ? this.cells[cell.row + 1][cell.rank + 1] : null;
+
+            case 4: return (cell.rank > 0) ? this.cells[cell.row][cell.rank - 1] : null;
+            case 5: return (cell.rank > 0) ? this.cells[cell.row][cell.rank - 1] : null;
+        }
+
+    }
 };
 
 Grid.prototype.step = function(direction)

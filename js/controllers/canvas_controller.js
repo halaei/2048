@@ -36,7 +36,7 @@ function CanvasController(canvas)
             {
                 //fire a game move event
                 var direction = self.pressed_button;
-                self.game.onMove([direction, (direction + 1) % 6]);
+                self.game.onMove(direction);
             }
             if(self.pressed_button !== null)
             {

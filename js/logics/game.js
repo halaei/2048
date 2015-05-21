@@ -52,16 +52,16 @@ Game.prototype.initTiles = function()
 
 Game.prototype.play = function()
 {
-	this.onMove = function(directions)
+	this.onMove = function(direction)
 	{
 		this.grid.changeLuckOfAllCells(false);
-        var ctrl_event = new ControlEvent(directions);
+        var ctrl_event = new ControlEvent(direction);
         var events = [ctrl_event];
         var child_events = [];
         var cnt = 0;
         do {
             cnt = child_events.length;
-            child_events = child_events.concat(this.grid.step(directions[0]), this.grid.step(directions[1]));
+            child_events = child_events.concat(this.grid.step(direction));
         } while(child_events.length > cnt);
 
         if(child_events.length == 0)

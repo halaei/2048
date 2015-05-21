@@ -14,7 +14,7 @@ Cell.prototype.locationId = function()
 	return this.row * this.row + this.rank;
 };
 
-Cell.prototype.direction = function()
+Cell.prototype.isPointingDown = function()
 {
 	return this.rank % 2;
 };

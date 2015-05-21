@@ -53,9 +53,9 @@ UnitTest.prototype.run = function()
                 this.tearDown();
                 this.pass(test);
             }
-            catch(exeption)
+            catch(exception)
             {
-                this.fail(test, exeption.message);
+                this.fail(test, exception);
             }
         }
     }
@@ -71,7 +71,8 @@ UnitTest.prototype.pass = function(test)
     document.write('<li style="color: green">' + test +"() passed </li>");
 };
 
-UnitTest.prototype.fail = function(test, message)
+UnitTest.prototype.fail = function(test, exception)
 {
-    document.write('<li style="color: red">' + test + "() failed: " + message + "</li>");
+    document.write('<li style="color: red">' + test + "() failed: " + exception.message + "</li>");
+    console.log(exception);
 };
