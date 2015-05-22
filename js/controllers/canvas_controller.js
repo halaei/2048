@@ -27,7 +27,7 @@ function CanvasController(canvas)
                 self.pressed_button = null;
                 self.drawController();
             }
-        }
+        };
         this.canvas.onmouseup = function(e)
         {
             var position = getMousePosition(e);
@@ -43,7 +43,7 @@ function CanvasController(canvas)
                 self.pressed_button = null;
                 self.drawController();
             }
-        }
+        };
     };
     this.setEventHandlers();
 
@@ -59,7 +59,7 @@ CanvasController.prototype.locatePoint = function(point)
     }
     var angle = Math.atan2(delta.dx, delta.dy);
     return 2 - Math.floor(angle / Math.PI * 3);
-}
+};
 
 CanvasController.prototype.drawController = function()
 {
@@ -76,10 +76,10 @@ CanvasController.prototype.drawController = function()
         this.context.fill();
         this.context.stroke();
     }
-}
+};
 
 CanvasController.prototype.register = function(game)
 {
     this.game = game;
-}
+};
 
