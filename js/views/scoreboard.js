@@ -34,3 +34,9 @@ Scorboard.prototype.handleRandomInsertionEvent = function(event)
 {
     this.increaseScore(event.value);
 }
+
+Scorboard.prototype.handleResetEvent = function(event)
+{
+    this.score = 0;
+    this.showScore();
+}

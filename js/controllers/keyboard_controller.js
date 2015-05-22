@@ -21,6 +21,10 @@ function KeyboardController(game_div)
             var ch = String.fromCharCode(event.keyCode);
             if(map[ch] !== undefined)
                 self.game.onMove(map[ch]);
+            else if(ch == 'R')
+            {
+                self.game.reset();
+            }
         };
     };
     this.setEventHandlers();

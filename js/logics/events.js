@@ -29,6 +29,11 @@ function ControlEvent(directions)
     this.child_events = [];
 }
 
+function ResetEvent()
+{
+
+}
+
 function registerEvents()
 {
     var events = [
@@ -36,7 +41,8 @@ function registerEvents()
         'RollAndMergeEvent',
         'RandomInsertionEvent',
         'ControlEvent',
-        'GameOverEvent'
+        'GameOverEvent',
+        'ResetEvent'
     ];
 
     for(var i = 0; i < events.length; i++)

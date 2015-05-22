@@ -112,6 +112,14 @@ Game.prototype.gameOver = function()
 	};
 };
 
+Game.prototype.reset = function()
+{
+    this.grid = new Grid(this.grid.size);
+    this.dispatchEvents([new ResetEvent()]);
+    this.initTiles();
+    this.play();
+}
+
 Game.prototype.dispatchEvents = function(events)
 {
     for(var i = 0; i < events.length; i++)

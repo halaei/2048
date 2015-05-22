@@ -101,6 +101,12 @@ CanvasView.prototype.handleControlEvent = function(event)
 
 };
 
+CanvasView.prototype.handleResetEvent = function(event)
+{
+    this.initGrid();
+    this.draw();
+}
+
 CanvasView.prototype.onNewRandomTile = function(row, rank, value)
 {
 	
