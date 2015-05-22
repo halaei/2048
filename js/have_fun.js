@@ -12,7 +12,7 @@ function haveFun()
 	return new Game(
 		new Grid(4),
 		new EventLog(storage),
-		[new CanvasController(controller), new KeyboardController(document)],
+		[new CanvasController(controller), new KeyboardController(document), new TouchController(view)],
 		new CanvasView(view, 4),
         new Scorboard(score, highscore, 0, storage)
     );
