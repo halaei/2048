@@ -19,6 +19,7 @@ function CanvasController(canvas)
             var position = getMousePosition(e);
             self.pressed_button = self.locatePoint(position);
             self.drawController();
+            e.preventDefault();
         };
         this.canvas.onmouseout = function(e)
         {
