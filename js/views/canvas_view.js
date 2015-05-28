@@ -96,9 +96,14 @@ CanvasView.prototype.handleGameOverEvent = function(event)
     console.log("game is over");
 };
 
+CanvasView.prototype.handleStepEvent = function(event)
+{
+    this.draw();
+};
+
 CanvasView.prototype.handleControlEvent = function(event)
 {
-
+    this.draw();
 };
 
 CanvasView.prototype.handleResetEvent = function(event)
@@ -114,6 +119,17 @@ CanvasView.prototype.onNewRandomTile = function(row, rank, value)
 
 CanvasView.prototype.onGameOver = function()
 {
+};
+
+CanvasView.prototype.register = function(game)
+{
+    game.on('RollEvent', this, this.handleRollEvent);
+    game.on('RollAndMergeEvent',this, this.handleRollAndMergeEvent);
+    game.on('RandomInsertionEvent',this, this.handleRandomInsertionEvent);
+    game.on('GameOverEvent', this, this.handleGameOverEvent);
+    game.on('ControlEvent', this, this.handleControlEvent);
+    game.on('StepEvent', this, this.handleStepEvent);
+    game.on('ResetEvent', this, this.handleResetEvent);
 };
 
 var fill_colors = {

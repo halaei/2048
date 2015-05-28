@@ -55,3 +55,8 @@ EventLog.prototype.handleGameOverEvent = function(event)
 EventLog.prototype.handleControlEvent = function(event)
 {
 };
+
+EventLog.prototype.register = function(game)
+{
+
+}

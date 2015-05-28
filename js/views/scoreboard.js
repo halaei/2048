@@ -8,9 +8,15 @@ function Scorboard(score_div, highscore_div, score, storage)
     this.showScore();
 }
 
-Scorboard.prototype.increaseScore = function(increment)
+Scorboard.prototype.showScore = function()
 {
-    this.score += increment;
+    this.score_div.innerHTML = this.score;
+    this.highscore_div.innerHTML = this.highscore;
+};
+
+Scorboard.prototype.update = function(score_event)
+{
+    this.score = score_event.new_score;
     if(this.highscore < this.score)
     {
         this.highscore = this.score;
@@ -19,24 +25,7 @@ Scorboard.prototype.increaseScore = function(increment)
     this.showScore();
 };
 
-Scorboard.prototype.showScore = function()
+Scorboard.prototype.register = function(game)
 {
-    this.score_div.innerHTML = this.score;
-    this.highscore_div.innerHTML = this.highscore;
+    game.on('UpdateScoreEvent', this, this.update);
 };
-
-Scorboard.prototype.handleRollAndMergeEvent = function(event)
-{
-    this.increaseScore(event.value);
-};
-
-Scorboard.prototype.handleRandomInsertionEvent = function(event)
-{
-    this.increaseScore(event.value);
-}
-
-Scorboard.prototype.handleResetEvent = function(event)
-{
-    this.score = 0;
-    this.showScore();
-}

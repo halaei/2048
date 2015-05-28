@@ -105,8 +105,9 @@ Grid.prototype.neighbor = function(cell, direction)
 
 Grid.prototype.step = function(direction)
 {
+    var step_event = new StepEvent();
+    var score = 0;
     var cells = this.iterateInDirection(direction);
-    var events = [];
     for(var i = 0; i < cells.length; i++)
     {
         if(! cells[i].locked && cells[i].tile != null)
@@ -118,18 +119,18 @@ Grid.prototype.step = function(direction)
                 {
                     //move tile to empty neighbor
                     cells[i].tile.roll(neighbor);
-                    events.push(new RollEvent(cells[i], neighbor));
+                    step_event.addChild(new RollEvent(cells[i], neighbor));
                 }
                 else if(! neighbor.locked && neighbor.tile.value == cells[i].tile.value)
                 {
                     //merge tile with neighbor
                     cells[i].tile.merge(neighbor);
-                    events.push(new RollAndMergeEvent(cells[i], neighbor));
+                    step_event.addChild(new RollAndMergeEvent(cells[i], neighbor));
                 }
             }
         }
     }
-    return events;
+    return step_event;
 }
 
 Grid.prototype.gameIsOver = function()
