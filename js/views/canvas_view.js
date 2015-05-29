@@ -166,6 +166,6 @@ function TileStyle(value)
     this.fill_style =
         value <= 2048 ? fill_colors[value]:'black';
     this.font_style = value == 0 ? 'gray' : value <= 2048 ? 'black' : 'white';
-    this.font = value < 100 ? "30px Arial" : value < 1000 ? "20px Arial" : "15px Arial";
+    this.font = value < 100 ? "25px Clear Sans" : value < 1000 ? "20px Clear Sans" : "15px Arial";
     this.line_style = 'blue';
 }

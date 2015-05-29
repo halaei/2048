@@ -111,12 +111,13 @@ hr {
 #Triangular2048MainDiv {
     width: 500px;
     margin: 0 auto;
+    border: 4px solid #9BC6DA;
+    padding: 30px;
+    border-radius: 30px;
 }
 
 .view-container {
-    margin-top: 40px;
     position: relative;
-    padding: 15px;
     cursor: default;
     -webkit-touch-callout: none;
     -ms-touch-callout: none;
@@ -125,13 +126,14 @@ hr {
     -ms-user-select: none;
     -ms-touch-action: none;
     touch-action: none;
-    background: #bbada0;
-    border-radius: 6px;
+    background: #9BC6DA;
+    border-radius: 50%;
     width: 500px;
     height: 500px;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
+    margin-bottom: 30px;
 }
 
 .view-container.canvas_view {
@@ -228,7 +230,10 @@ hr {
 .game-explanation {
     margin-top: 50px;
 }
-
+.controller-container {
+    width: 100px;
+    margin: auto;
+}
 @media screen and (max-width: 520px) {
     html, body {
         font-size: 15px;
@@ -247,6 +252,9 @@ hr {
     #Triangular2048MainDiv {
         width: 280px;
         margin: 0 auto;
+        border: 2px solid #9BC6DA;
+        padding: 3px;
+        border-radius: 3px;
     }
 
     .score, .highscore {
@@ -293,6 +301,7 @@ hr {
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
+        margin-bottom: 5px;
     }
 
     .view-container .game-message {
