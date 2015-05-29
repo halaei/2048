@@ -1,8 +1,9 @@
 function StatusLog(storage)
 {
 	this.storage = storage;
-	this.log = [];
-    this.undoing = false;
+    var persisted = this.storage.getGameState();
+	this.log = persisted !== null ? [persisted] : [];
+    this.setting_status = false;
 }
 
 StatusLog.prototype.registerStatus = function(score, values)
@@ -11,22 +12,27 @@ StatusLog.prototype.registerStatus = function(score, values)
     this.storage.setGameState([score, values]);
 };
 
+StatusLog.prototype.getCurrentStatus = function()
+{
+    return this.log.length > 0 ? this.log.pop() : null;
+}
+
 StatusLog.prototype.handleUndoRequestEvent = function()
 {
     if(this.log.length > 1)
     {
-        this.undoing = true;
+        this.setting_status = true;
         this.log.pop();
         var cur = this.log[this.log.length - 1];
         this.storage.setGameState(cur);
-        this.game.undo(cur);
+        this.game.setStatus(cur);
     }
 };
 
 StatusLog.prototype.handleStatusUpdateEvent = function(event)
 {
-    if(this.undoing) {
-        this.undoing = false;
+    if(this.setting_status) {
+        this.setting_status = false;
     } else {
         this.registerStatus(event.score, event.values);
     }

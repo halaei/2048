@@ -23,8 +23,15 @@ function Game(grid, eventLog, controllers, view, scoreboard)
     }
 
 	this.initNumberOfTiles = 2;
-	this.initTiles();
-	this.play();
+
+    var status = eventLog.getCurrentStatus();
+    if(status !== null) {
+        this.setStatus(status);
+    } else {
+        this.initTiles();
+    }
+
+    this.play();
 }
 
 Game.prototype.registerControllers = function()
@@ -57,6 +64,16 @@ Game.prototype.initTiles = function()
 
     this.dispatchEvents([init]);
 };
+
+Game.prototype.setStatus = function(status)
+{
+    this.score = status[0];
+    this.setCellValues(status[1]);
+    var event = new StatusUpdateEvent(this.score, this.getCellValues());
+    this.dispatchEvents([event]);
+};
+
+
 
 Game.prototype.play = function()
 {
@@ -100,14 +117,6 @@ Game.prototype.play = function()
 	{
         this.dispatchEvents([new UndoRequestEvent()]);
 	};
-
-    this.undo = function(status)
-    {
-        this.score = status[0];
-        this.setCellValues(status[1]);
-        var event = new StatusUpdateEvent(this.score, this.getCellValues());
-        this.dispatchEvents([event]);
-    };
 
 	this.onPlayback = function()
 	{
