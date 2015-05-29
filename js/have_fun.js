@@ -13,7 +13,7 @@ function haveFun()
     var storage = new LocalStorageManager();
 	return new Game(
 		new Grid(4),
-		new EventLog(storage),
+		new StatusLog(storage),
 		[new CanvasController(controller), new KeyboardController(document), new TouchController(view), new Reset(reset)],
 		new CanvasView(view, 4),
         new Scorboard(score, highscore, 0, storage)

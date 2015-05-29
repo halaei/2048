@@ -16,7 +16,7 @@ Scorboard.prototype.showScore = function()
 
 Scorboard.prototype.update = function(score_event)
 {
-    this.score = score_event.new_score;
+    this.score = score_event.score;
     if(this.highscore < this.score)
     {
         this.highscore = this.score;
@@ -27,5 +27,5 @@ Scorboard.prototype.update = function(score_event)
 
 Scorboard.prototype.register = function(game)
 {
-    game.on('UpdateScoreEvent', this, this.update);
+    game.on('StatusUpdateEvent', this, this.update);
 };

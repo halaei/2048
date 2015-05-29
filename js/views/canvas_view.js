@@ -1,6 +1,42 @@
-/**
- * CanvasView Class
-**/
+function GridLocation(row, rank)
+{
+    this.row = row;
+    this.rank = rank;
+}
+
+function InsertAnimationComponent(dst, value, n_frames)
+{
+    this.dst = dst;
+    this.value = value;
+    this.n_frames = n_frames;
+    this.cur_frame = 0;
+}
+
+function RollAnimationComponenet(src, dst, value, n_frames)
+{
+    this.src = src;
+    this.dst = dst;
+    this.value = value;
+    this.n_frames = n_frames;
+    this.cur_frame = 0;
+}
+
+function MergeAnimationComponent(src, old_value, new_value, n_frames)
+{
+    this.src = src;
+    this.new_value = new_value;
+    this.old_value = old_value;
+    this.n_frames = n_frames;
+    this.cur_frame = 0;
+}
+
+function Animation(n_frames)
+{
+    this.n_frames = n_frames;
+    this.cur_frame = 0;
+    this.components = [];
+}
+
 function CanvasView(canvas, gridSize)
 {
     //set canvas
@@ -15,25 +51,11 @@ function CanvasView(canvas, gridSize)
     this.radius = this.center.x - 2;
 
     //set state of the game
-    this.gameOver = false;
-    this.initGrid();
+    this.game_over = false;
 
-    //draw
-    this.draw();
+    this.animations = [];
+
 }
-
-CanvasView.prototype.initGrid = function()
-{
-    this.grid = [];
-    for(var i = 0; i < this.gridSize; i++)
-    {
-        this.grid[i] = [];
-        for(var j = 0; j < 2 * i + 1 ; j++)
-        {
-            this.grid[i][j] = 0;
-        }
-    }
-};
 
 CanvasView.prototype.draw = function()
 {
@@ -74,62 +96,54 @@ CanvasView.prototype.draw = function()
     drawTiles();
 }
 
-CanvasView.prototype.handleRollEvent = function(event)
+CanvasView.prototype.gameOver = function()
 {
-    this.grid[event.src_cell.row][event.src_cell.rank] = 0;
-    this.grid[event.dst_cell.row][event.dst_cell.rank] = event.value;
-};
-
-CanvasView.prototype.handleRollAndMergeEvent = function(event)
-{
-    this.grid[event.src_cell.row][event.src_cell.rank] = 0;
-    this.grid[event.dst_cell.row][event.dst_cell.rank] = event.value;
-};
-
-CanvasView.prototype.handleRandomInsertionEvent = function(event)
-{
-    this.grid[event.dst_cell.row][event.dst_cell.rank] = event.dst_cell.tile.value;
-};
-
-CanvasView.prototype.handleGameOverEvent = function(event)
-{
+    this.game_over = true;
     console.log("game is over");
+};
+
+CanvasView.prototype.handleMoveEvent = function(event)
+{
+    if(event.gameOver) this.gameOver();
 };
 
 CanvasView.prototype.handleStepEvent = function(event)
 {
-    this.draw();
-};
-
-CanvasView.prototype.handleControlEvent = function(event)
-{
-    this.draw();
 };
 
 CanvasView.prototype.handleResetEvent = function(event)
 {
-    this.initGrid();
+}
+
+CanvasView.prototype.handleStatusUpdateEvent = function(event)
+{
+    this.grid = [];
+    var v = 0;
+    for(var i = 0; i < this.gridSize; i++)
+    {
+        this.grid[i] = [];
+        for(var j = 0; j < 2 * i + 1 ; j++)
+        {
+            this.grid[i][j] = event.values[v];
+            v++;
+        }
+    }
     this.draw();
 }
 
-CanvasView.prototype.onNewRandomTile = function(row, rank, value)
-{
-	
-};
-
-CanvasView.prototype.onGameOver = function()
-{
-};
-
 CanvasView.prototype.register = function(game)
 {
-    game.on('RollEvent', this, this.handleRollEvent);
-    game.on('RollAndMergeEvent',this, this.handleRollAndMergeEvent);
-    game.on('RandomInsertionEvent',this, this.handleRandomInsertionEvent);
-    game.on('GameOverEvent', this, this.handleGameOverEvent);
-    game.on('ControlEvent', this, this.handleControlEvent);
+    /**
+     * to check if game is over
+     */
+    game.on('MoveEvent', this, this.handleMoveEvent);
     game.on('StepEvent', this, this.handleStepEvent);
     game.on('ResetEvent', this, this.handleResetEvent);
+
+    /**
+     * for no animation view and to guarantee exactness of final view after the end of animation
+     */
+    game.on('StatusUpdateEvent', this, this.handleStatusUpdateEvent);
 };
 
 var fill_colors = {
