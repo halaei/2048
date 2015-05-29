@@ -37,7 +37,7 @@ h1.title {
     display: inline-block;
     background: #bbada0;
     padding: 15px 25px;
-    font-size: 25px;
+    font-size: 22px;
     height: 25px;
     line-height: 47px;
     font-weight: bold;
@@ -63,7 +63,7 @@ h1.title {
     position: absolute;
     right: 30px;
     color: red;
-    font-size: 25px;
+    font-size: 22px;
     line-height: 25px;
     font-weight: bold;
     color: rgba(119, 110, 101, 0.9);
