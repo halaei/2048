@@ -112,3 +112,16 @@ function writeText(context, text, centerX, centerY, font, fontStyle)
     context.font = font;
     context.fillText(text, centerX, centerY);
 }
+
+function rotatePolygon(polygon, point1, point2, angle)
+{
+    var points = [];
+    var line = new TD_Line(
+        new TD_Point(point1.x, point1.y, 0),
+        new TD_Line(point2.x - point1.x, point2.y - point1.y));
+    for(var i = 0; i < polygon.length; i++) {
+        var p = TD_RotatePointAboutAxis(new TD_Point(polygon[i].x, polygon[i].y, 0), line, angle);
+        points.push({x: p.x, y: p.y});
+    }
+    return points;
+}

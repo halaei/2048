@@ -36,6 +36,22 @@ UnitTest.prototype.assertTrue = function(value, message, data)
     }
 };
 
+UnitTest.prototype.assertAlmostEqual = function(expected, actual, message, data)
+{
+    var abs = Math.abs(expected - actual);
+    var r = Math.abs(expected) / 1000;
+    if(abs > r)
+    {
+        if(data !== undefined)
+        {
+            console.log(data);
+        }
+        throw new Error(message);
+    }
+};
+
+
+
 UnitTest.prototype.run = function()
 {
     document.write("<h1>" + this.testDescription + "</h1>")
