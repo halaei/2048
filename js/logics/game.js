@@ -196,5 +196,4 @@ Game.prototype.setCellValues = function(values)
             cells[i].empty();
         }
     }
-    console.log(this.grid.iterateInDirection(5));
 }

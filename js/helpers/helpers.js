@@ -113,15 +113,21 @@ function writeText(context, text, centerX, centerY, font, fontStyle)
     context.fillText(text, centerX, centerY);
 }
 
-function rotatePolygon(polygon, point1, point2, angle)
+function rotatePolygon(polygon, axis, angle)
 {
     var points = [];
-    var line = new TD_Line(
-        new TD_Point(point1.x, point1.y, 0),
-        new TD_Line(point2.x - point1.x, point2.y - point1.y));
     for(var i = 0; i < polygon.length; i++) {
-        var p = TD_RotatePointAboutAxis(new TD_Point(polygon[i].x, polygon[i].y, 0), line, angle);
+        var p = TD_RotatePointAboutAxis(new TD_Point(polygon[i].x, polygon[i].y, 0), axis, angle);
         points.push({x: p.x, y: p.y});
     }
     return points;
+}
+
+function interpolateLocation(point1, point2, weight1, weight2)
+{
+    var w = weight1 + weight2;
+    return {
+        x: (point1.x * weight1 + point2.x * weight2) / w,
+        y: (point1.y * weight1 + point2.y * weight2) / w
+    };
 }

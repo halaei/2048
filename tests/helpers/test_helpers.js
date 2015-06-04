@@ -45,5 +45,15 @@ TestHelpers.prototype.testRotateRandomly = function()
     this.assertAlmostEqual(-2.3101, p2.z, 'z is computed wrong', [p1, p2]);
 }
 
+TestHelpers.prototype.testRotateAlong111 = function()
+{
+    var p1 = new TD_Point(1, 1, 0);
+    var line = new TD_Line(new TD_Point(0, 0, 0), new TD_Point(1, 1, 1));
+    var p2 = TD_RotatePointAboutAxis(p1, line, Math.PI / 3 * 2);
+    this.assertAlmostEqual(0, p2.x, 'x is computed wrong', [p1, p2]);
+    this.assertAlmostEqual(1, p2.y, 'y is computed wrong', [p1, p2]);
+    this.assertAlmostEqual(1, p2.z, 'z is computed wrong', [p1, p2]);
+}
+
 var test_helpers = new TestHelpers();
 test_helpers.run();

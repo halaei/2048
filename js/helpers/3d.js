@@ -7,7 +7,7 @@ function TD_Point(x, y, z)
 
 TD_Point.prototype.normalize = function()
 {
-    var l = Math.sqrt(this.x * this.x + this.y + this.y + this.z * this.z);
+    var l = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     return new TD_Point(this.x / l, this.y / l, this.z / l);
 };
 

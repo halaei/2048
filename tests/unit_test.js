@@ -40,7 +40,7 @@ UnitTest.prototype.assertAlmostEqual = function(expected, actual, message, data)
 {
     var abs = Math.abs(expected - actual);
     var r = Math.abs(expected) / 1000;
-    if(abs > r)
+    if(abs > r && (Math.abs(expected) < 0.000001 && Math.abs(actual) > 0.000001))
     {
         if(data !== undefined)
         {

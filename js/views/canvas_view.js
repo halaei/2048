@@ -57,13 +57,89 @@ function CanvasView(canvas, gridSize)
 
 }
 
+CanvasView.prototype.drawBoard = function()
+{
+
+};
+
+CanvasView.prototype.drawTiles = function()
+{
+
+};
+
+CanvasView.prototype.updateFrame = function()
+{
+
+}
+
 CanvasView.prototype.draw = function()
 {
     var self = this;
     var polygon = makeRegularPolygon(3, self.radius, self.center.x, self.center.y, - Math.PI / 2);
+
+    function axisOfRotation(grid_location, direction) {
+        var d;
+        var p;
+        switch(direction){
+            case 0:
+                d = new TD_Point(1, 0, 0);
+                p = interpolateLocation(polygon[0], polygon[1], self.gridSize - grid_location.row, grid_location.row);
+                break;
+            case 1:
+                d = new TD_Point(Math.cos(Math.PI/3), Math.sin(Math.PI/3), 0);
+                p = interpolateLocation(polygon[1], polygon[2], self.gridSize - (grid_location.row - grid_location.rank / 2), (grid_location.row - grid_location.rank / 2));
+                break;
+            case 2:
+                d = new TD_Point(- Math.cos(Math.PI/3), Math.sin(Math.PI/3), 0);
+                p = interpolateLocation(polygon[0], polygon[1], self.gridSize - (grid_location.rank + 1) / 2, (grid_location.rank + 1) / 2);
+                break;
+            case 3:
+                d = new TD_Point(-1, 0, 0);
+                p = interpolateLocation(polygon[0], polygon[1], self.gridSize - (grid_location.row + 1), grid_location.row + 1);
+                break;
+            case 4:
+                d = new TD_Point(- Math.cos(Math.PI/3), - Math.sin(Math.PI/3), 0);
+                p = interpolateLocation(polygon[1], polygon[2], self.gridSize - (grid_location.row - (grid_location.rank - 1) / 2), (grid_location.row - (grid_location.rank - 1) / 2));
+                break;
+            case 5:
+                d = new TD_Point(Math.cos(Math.PI/3), - Math.sin(Math.PI/3), 0);
+                p = interpolateLocation(polygon[0], polygon[1], self.gridSize - (grid_location.rank) / 2, (grid_location.rank) / 2);
+                break;
+        }
+        p = new TD_Point(p.x, p.y, 0);
+        return new TD_Line(p, d);
+    }
+
     function drawBoard() {
         drawPolygon(self.context, polygon, "red");
+
+        var stripes = partitionToStripes(polygon, self.gridSize);
+        var size = (stripes[1][1].x - stripes[0][1].x);
+        var radius = size / Math.sqrt(3);
+        for(var i = 0; i < self.gridSize; i++)
+        {
+            var n = 2 * i + 1;
+            var x = stripes[0][i].x;
+            var y = [
+                stripes[0][i].y + radius,
+                stripes[0][i + 1].y - radius
+            ];
+            for(var j = 0; j < n; j++)
+            {
+                var tile_style = new TileStyle(0);
+                var triangle = makeRegularPolygon(3, radius, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
+                drawPolygon(self.context, triangle, "red");
+
+                var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
+                drawPolygon(self.context, triangle, tile_style.line_style, tile_style.fill_style);
+
+                writeText(self.context, 0, x, y[j % 2], tile_style.font, tile_style.font_style);
+                x += size/2;
+
+            }
+        }
     }
+
     function drawTiles() {
         var stripes = partitionToStripes(polygon, self.gridSize);
         var size = (stripes[1][1].x - stripes[0][1].x);
@@ -78,14 +154,21 @@ CanvasView.prototype.draw = function()
                 ];
             for(var j = 0; j < n; j++)
             {
-                var tile_style = new TileStyle(self.grid[i][j]);
-                var triangle = makeRegularPolygon(3, radius, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
-                drawPolygon(self.context, triangle, "red");
+                if(self.grid[i][j].value) {
+                    var tile_style = new TileStyle(self.grid[i][j].value);
 
-                var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
-                drawPolygon(self.context, triangle, tile_style.line_style, tile_style.fill_style);
+                    var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
 
-                writeText(self.context, self.grid[i][j], x, y[j % 2], tile_style.font, tile_style.font_style);
+                    if(self.grid[i][j].angle && self.grid[i][j].move_direction !== null) {
+                        var axis = axisOfRotation(new GridLocation(i, j), self.grid[i][j].move_direction);
+                        triangle = rotatePolygon(triangle, axis, self.grid[i][j].angle);
+                    }
+
+                    drawPolygon(self.context, triangle, tile_style.line_style, tile_style.fill_style);
+
+                    writeText(self.context, self.grid[i][j].value, x, y[j % 2], tile_style.font, tile_style.font_style);
+                }
+
                 x += size/2;
 
             }
@@ -95,6 +178,7 @@ CanvasView.prototype.draw = function()
     drawBoard();
     drawTiles();
 }
+
 
 CanvasView.prototype.gameOver = function()
 {
@@ -124,7 +208,7 @@ CanvasView.prototype.handleStatusUpdateEvent = function(event)
         this.grid[i] = [];
         for(var j = 0; j < 2 * i + 1 ; j++)
         {
-            this.grid[i][j] = event.values[v];
+            this.grid[i][j] = {value: event.values[v], angle: 0, move_direction: null};
             v++;
         }
     }
