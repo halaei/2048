@@ -106,7 +106,6 @@ Grid.prototype.neighbor = function(cell, direction)
 Grid.prototype.step = function(direction)
 {
     var step_event = new StepEvent();
-    var score = 0;
     var cells = this.iterateInDirection(direction);
     for(var i = 0; i < cells.length; i++)
     {
@@ -131,7 +130,7 @@ Grid.prototype.step = function(direction)
         }
     }
     return step_event;
-}
+};
 
 Grid.prototype.gameIsOver = function()
 {
@@ -152,6 +151,6 @@ Grid.prototype.gameIsOver = function()
         }
     }
     return true;
-}
+};
 
 

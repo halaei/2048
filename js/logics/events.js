@@ -41,6 +41,7 @@ function RollEvent(src_cell, dst_cell)
     initEventObject(this);
     this.src_cell = src_cell;
     this.dst_cell = dst_cell;
+    this.move_direction = this.src_cell.locateNeighbor(dst_cell);
     this.value = dst_cell.tile.value;
 }
 
@@ -49,6 +50,7 @@ function RollAndMergeEvent(src_cell, dst_cell)
     initEventObject(this);
     this.src_cell = src_cell;
     this.dst_cell = dst_cell;
+    this.move_direction = this.src_cell.locateNeighbor(dst_cell);
     this.value = dst_cell.tile.value;
     this.score = this.value;
 }
@@ -103,7 +105,7 @@ MoveEvent.prototype.addStep = addChild;
 MoveEvent.prototype.getSteps = function()
 {
     return this.children.slice(1);
-}
+};
 
 function ResetEvent(status_update_event)
 {

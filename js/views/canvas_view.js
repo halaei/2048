@@ -6,56 +6,71 @@ function CanvasView(canvas, gridSize)
 
     //set grid size
     this.gridSize = gridSize;
+    this.initGrid();
 
     //set geometry
     this.center = {x:this.canvas.width / 2, y:this.canvas.height / 2};
     this.radius = this.center.x - 2;
 
-    this.lastFrameTimestamp = 0;
     this.fps = 30;
+
+    this.makeBoard();
 
     //set state of the game
     this.game_over = false;
 
     this.animations = [];
-
 }
+
+CanvasView.prototype.makeBoard = function()
+{
+    this.polygons = [];
+    this.texts = [];
+    this.polygons.push(
+        new CPolygon(
+            makeRegularPolygon(3, this.radius, this.center.x, this.center.y, - Math.PI / 2),
+            "red", "white"));
+    var stripes = partitionToStripes(this.polygons[0].vertex_list, this.gridSize);
+    var size = (stripes[1][1].x - stripes[0][1].x);
+    var radius = size / Math.sqrt(3);
+    for(var i = 0; i < this.gridSize; i++)
+    {
+        var n = 2 * i + 1;
+        var x = stripes[0][i].x;
+        var y = [
+            stripes[0][i].y + radius,
+            stripes[0][i + 1].y - radius
+        ];
+        for(var j = 0; j < n; j++)
+        {
+            var tile_style = new TileStyle(0, 1);
+            var triangle = makeRegularPolygon(3, radius, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
+            this.polygons.push(new CPolygon(triangle, "red", null));
+
+            triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
+            this.polygons.push(new CPolygon(triangle, tile_style.line_style, tile_style.fill_style));
+
+            this.texts.push(new CText("0", {x: x, y: y[j % 2]}, tile_style.font, tile_style.font_style));
+            x += size/2;
+
+        }
+    }
+};
 
 CanvasView.prototype.drawBoard = function()
 {
-
+    for(var i = 0; i < this.polygons.length; i++) {
+        drawPolygon(this.context, this.polygons[i].vertex_list, this.polygons[i].line_style, this.polygons[i].fill_style);
+    }
+    for(i = 0; i < this.texts.length; i++) {
+        writeText(this.context, this.texts[i].text, this.texts[i].center.x, this.texts[i].center.y, this.texts[i].font, this.texts[i].font_style);
+    }
 };
 
 CanvasView.prototype.drawTiles = function()
 {
-
-};
-
-CanvasView.prototype.updateFrame = function()
-{
-
-}
-
-CanvasView.prototype.renderAnimation = function()
-{
-    if(this.animations.length && this.animations[0].finished()) {
-        this.animations.pop();
-    }
-
-    if(this.animations.length == 0) {
-        //do nothing
-        return;
-    }
-
-    requestAnimationFrame(this.renderAnimation);
-
-}
-
-CanvasView.prototype.draw = function()
-{
     var self = this;
-    var polygon = makeRegularPolygon(3, self.radius, self.center.x, self.center.y, - Math.PI / 2);
-
+    var polygon = this.polygons[0].vertex_list;
     function axisOfRotation(grid_location, direction) {
         var d;
         var p;
@@ -89,75 +104,77 @@ CanvasView.prototype.draw = function()
         return new TD_Line(p, d);
     }
 
-    function drawBoard() {
-        drawPolygon(self.context, polygon, "red");
-
-        var stripes = partitionToStripes(polygon, self.gridSize);
-        var size = (stripes[1][1].x - stripes[0][1].x);
-        var radius = size / Math.sqrt(3);
-        for(var i = 0; i < self.gridSize; i++)
+    var stripes = partitionToStripes(this.polygons[0].vertex_list, this.gridSize);
+    var size = (stripes[1][1].x - stripes[0][1].x);
+    var radius = size / Math.sqrt(3);
+    for(var i = 0; i < this.gridSize; i++)
+    {
+        var n = 2 * i + 1;
+        var x = stripes[0][i].x;
+        var y = [
+            stripes[0][i].y + radius,
+            stripes[0][i + 1].y - radius
+        ];
+        for(var j = 0; j < n; j++)
         {
-            var n = 2 * i + 1;
-            var x = stripes[0][i].x;
-            var y = [
-                stripes[0][i].y + radius,
-                stripes[0][i + 1].y - radius
-            ];
-            for(var j = 0; j < n; j++)
-            {
-                var tile_style = new TileStyle(0);
-                var triangle = makeRegularPolygon(3, radius, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
-                drawPolygon(self.context, triangle, "red");
+            if(this.grid[i][j].value) {
+                var tile_style = new TileStyle(this.grid[i][j].value, this.grid[i][j].text_size_factor);
 
                 var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
-                drawPolygon(self.context, triangle, tile_style.line_style, tile_style.fill_style);
+                var center = [{x: x, y: y[j % 2]}];
 
-                writeText(self.context, 0, x, y[j % 2], tile_style.font, tile_style.font_style);
-                x += size/2;
-
-            }
-        }
-    }
-
-    function drawTiles() {
-        var stripes = partitionToStripes(polygon, self.gridSize);
-        var size = (stripes[1][1].x - stripes[0][1].x);
-        var radius = size / Math.sqrt(3);
-        for(var i = 0; i < self.gridSize; i++)
-        {
-            var n = 2 * i + 1;
-            var x = stripes[0][i].x;
-            var y = [
-                stripes[0][i].y + radius,
-                stripes[0][i + 1].y - radius
-                ];
-            for(var j = 0; j < n; j++)
-            {
-                if(self.grid[i][j].value) {
-                    var tile_style = new TileStyle(self.grid[i][j].value);
-
-                    var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
-
-                    if(self.grid[i][j].angle && self.grid[i][j].move_direction !== null) {
-                        var axis = axisOfRotation(new GridLocation(i, j), self.grid[i][j].move_direction);
-                        triangle = rotatePolygon(triangle, axis, self.grid[i][j].angle);
-                    }
-
-                    drawPolygon(self.context, triangle, tile_style.line_style, tile_style.fill_style);
-
-                    writeText(self.context, self.grid[i][j].value, x, y[j % 2], tile_style.font, tile_style.font_style);
+                if(this.grid[i][j].angle && this.grid[i][j].move_direction !== null) {
+                    var axis = axisOfRotation(new GridLocation(i, j), this.grid[i][j].move_direction);
+                    triangle = rotatePolygon(triangle, axis, this.grid[i][j].angle);
+                    center = rotatePolygon(center, axis, this.grid[i][j].angle);
                 }
 
-                x += size/2;
+                drawPolygon(this.context, triangle, tile_style.line_style, tile_style.fill_style);
 
+                writeText(this.context, this.grid[i][j].value, center[0].x, center[0].y, tile_style.font, tile_style.font_style);
             }
+            x += size/2;
         }
     }
 
-    drawBoard();
-    drawTiles();
-}
+};
 
+CanvasView.prototype.renderAnimation = function()
+{
+    var time = new Date().getTime();
+    while(this.animations.length && this.animations[0].finished(time)) {
+        var a = this.animations.shift();
+        a.commit(this.grid);
+        this.draw();
+        this.requestAnimationFrame();
+        return;
+    }
+
+    if(this.animations.length == 0) {
+        return;
+    }
+
+    this.animations[0].begin(this.grid);
+    this.animations[0].getFrame(this.grid, time);
+    this.draw();
+
+    this.requestAnimationFrame();
+
+};
+
+CanvasView.prototype.requestAnimationFrame = function()
+{
+    var self = this;
+    requestAnimationFrame(function(){
+        self.renderAnimation();
+    });
+};
+
+CanvasView.prototype.draw = function()
+{
+    this.drawBoard();
+    this.drawTiles();
+};
 
 CanvasView.prototype.gameOver = function()
 {
@@ -168,40 +185,44 @@ CanvasView.prototype.gameOver = function()
 CanvasView.prototype.handleMoveEvent = function(event)
 {
     if(event.gameOver) this.gameOver();
+    this.requestAnimationFrame();
 };
 
 CanvasView.prototype.getNewAnimationStartTime = function()
 {
+    var cur = new Date().getTime();
     if(this.animations.length) {
         var a = this.animations[this.animations.length - 1];
-        return a.start_time + a.duration + 1000 / this.fps;
+        return Math.max(cur, a.start_time + a.duration + Math.ceil(1000 / this.fps));
     }
-    return new Date().getTime();
-}
+    return cur;
+};
 
 CanvasView.prototype.handleStepEvent = function(event)
 {
-    var animation = new Animation(250, this.getNewAnimationStartTime());
+    var animation = new Animation(100, this.getNewAnimationStartTime(), false);
     for(var i = 0; i < event.children.length; i++) {
-        if(event.name == 'RollEvent') {
-            animation.components.push(new RollAnimationComponenet(
-                new GridLocation(event.src_cell.row, event.src_cell.rank),
-                new GridLocation(event.dst_cell.row, event.dst_cell.rank),
-                event.value,
-                event.value
+        if(event.children[i].name == 'RollEvent') {
+            animation.rolls.push(new RollAnimationComponenet(
+                new GridLocation(event.children[i].src_cell.row, event.children[i].src_cell.rank),
+                new GridLocation(event.children[i].dst_cell.row, event.children[i].dst_cell.rank),
+                event.children[i].move_direction,
+                event.children[i].value,
+                event.children[i].value
             ));
-        } else if(event.name == 'RollAndMergeEvent') {
-            animation.components.push(new RollAnimationComponenet(
-                new GridLocation(event.src_cell.row, event.src_cell.rank),
-                new GridLocation(event.dst_cell.row, event.dst_cell.rank),
-                event.value / 2,
-                event.value
+        } else if(event.children[i].name == 'RollAndMergeEvent') {
+            animation.rolls.push(new RollAnimationComponenet(
+                new GridLocation(event.children[i].src_cell.row, event.children[i].src_cell.rank),
+                new GridLocation(event.children[i].dst_cell.row, event.children[i].dst_cell.rank),
+                event.children[i].move_direction,
+                event.children[i].value / 2,
+                event.children[i].value
             ));
 
-        } else if(event.name == 'RandomInsertionEvent') {
-            animation.components.push(new InsertAnimationComponent(
-                new GridLocation(event.dst_cell.row, event.dst_cell.rank),
-                event.value));
+        } else if(event.children[i].name == 'RandomInsertionEvent') {
+            animation.inserts.push(new InsertAnimationComponent(
+                new GridLocation(event.children[i].dst_cell.row, event.children[i].dst_cell.rank),
+                event.children[i].value));
         }
     }
     this.animations.push(animation);
@@ -209,23 +230,43 @@ CanvasView.prototype.handleStepEvent = function(event)
 
 CanvasView.prototype.handleResetEvent = function(event)
 {
-}
+    this.handleStatusUpdateEvent(event.children[0]);
+};
 
-CanvasView.prototype.handleStatusUpdateEvent = function(event)
+CanvasView.prototype.initGrid = function()
 {
-    this.grid = [];
+    var grid = [];
+    for(var i = 0; i < this.gridSize; i++) {
+        grid[i] = [];
+        for(var j = 0; j < 2 * i + 1; j++) {
+            grid[i][j] = new CTile(0, 0, null, 1);
+        }
+    }
+    this.grid = grid;
+};
+
+CanvasView.prototype.pushUpdateStatusAnimation = function(event)
+{
     var v = 0;
+    var a = new Animation(200, this.getNewAnimationStartTime(), true);
     for(var i = 0; i < this.gridSize; i++)
     {
-        this.grid[i] = [];
         for(var j = 0; j < 2 * i + 1 ; j++)
         {
-            this.grid[i][j] = {value: event.values[v], angle: 0, move_direction: null};
+            if(event.values[v]) {
+                a.inserts.push(new InsertAnimationComponent(new GridLocation(i, j), event.values[v]));
+            }
             v++;
         }
     }
-    this.draw();
-}
+    this.animations.push(a);
+};
+
+CanvasView.prototype.handleStatusUpdateEvent = function(event)
+{
+    this.pushUpdateStatusAnimation(event);
+    this.requestAnimationFrame();
+};
 
 CanvasView.prototype.register = function(game)
 {
@@ -236,10 +277,6 @@ CanvasView.prototype.register = function(game)
     game.on('StepEvent', this, this.handleStepEvent);
     game.on('ResetEvent', this, this.handleResetEvent);
 
-    /**
-     * for no animation view and to guarantee exactness of final view after the end of animation
-     */
-    game.on('StatusUpdateEvent', this, this.handleStatusUpdateEvent);
 };
 
 var fill_colors = {
@@ -257,11 +294,12 @@ var fill_colors = {
         2048: 'red'
     };
 
-function TileStyle(value)
+function TileStyle(value, size_factor)
 {
+    var size = Math.ceil((value < 100 ? 25 : value < 1000 ? 20 : 15) * size_factor);
     this.fill_style =
         value <= 2048 ? fill_colors[value]:'black';
     this.font_style = value == 0 ? 'gray' : value <= 2048 ? 'black' : 'white';
-    this.font = value < 100 ? "25px Clear Sans" : value < 1000 ? "20px Clear Sans" : "15px Arial";
+    this.font = size + "px Clear Sans";
     this.line_style = 'blue';
 }

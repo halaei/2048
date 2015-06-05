@@ -15,7 +15,7 @@ StatusLog.prototype.registerStatus = function(score, values)
 StatusLog.prototype.getCurrentStatus = function()
 {
     return this.log.length > 0 ? this.log.pop() : null;
-}
+};
 
 StatusLog.prototype.handleUndoRequestEvent = function()
 {

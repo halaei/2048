@@ -9,6 +9,26 @@ function Cell(row, rank)
 	this.locked = false;
 }
 
+Cell.prototype.locateNeighbor = function(neighbor)
+{
+    if(this.row == neighbor.row) {
+        if(this.rank < neighbor.rank) {
+            if(this.rank % 2) {
+                return 2;
+            }
+            return 1;
+        }
+        if(this.rank % 2) {
+            return 4;
+        }
+        return 5;
+    }
+    if(this.row < neighbor.row) {
+        return 3;
+    }
+    return 0;
+};
+
 Cell.prototype.locationId = function()
 {
 	return this.row * this.row + this.rank;

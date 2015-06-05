@@ -70,7 +70,8 @@ Game.prototype.setStatus = function(status)
     this.score = status[0];
     this.setCellValues(status[1]);
     var event = new StatusUpdateEvent(this.score, this.getCellValues());
-    this.dispatchEvents([event]);
+    var reset = new ResetEvent(event);
+    this.dispatchEvents([reset]);
 };
 
 
