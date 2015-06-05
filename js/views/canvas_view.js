@@ -200,7 +200,7 @@ CanvasView.prototype.getNewAnimationStartTime = function()
 
 CanvasView.prototype.handleStepEvent = function(event)
 {
-    var animation = new Animation(100, this.getNewAnimationStartTime(), false);
+    var animation = new Animation(200, this.getNewAnimationStartTime(), false);
     for(var i = 0; i < event.children.length; i++) {
         if(event.children[i].name == 'RollEvent') {
             animation.rolls.push(new RollAnimationComponenet(
