@@ -16,7 +16,6 @@ TestCallbacks.prototype.testCall = function()
         }
     };
     var callback = obj.f;
-    console.log(obj.f);
     this.assertTrue(obj.name == callback.call(obj), 'callback call is worng');
 };
 

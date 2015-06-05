@@ -1,42 +1,3 @@
-function GridLocation(row, rank)
-{
-    this.row = row;
-    this.rank = rank;
-}
-
-function InsertAnimationComponent(dst, value, n_frames)
-{
-    this.dst = dst;
-    this.value = value;
-    this.n_frames = n_frames;
-    this.cur_frame = 0;
-}
-
-function RollAnimationComponenet(src, dst, value, n_frames)
-{
-    this.src = src;
-    this.dst = dst;
-    this.value = value;
-    this.n_frames = n_frames;
-    this.cur_frame = 0;
-}
-
-function MergeAnimationComponent(src, old_value, new_value, n_frames)
-{
-    this.src = src;
-    this.new_value = new_value;
-    this.old_value = old_value;
-    this.n_frames = n_frames;
-    this.cur_frame = 0;
-}
-
-function Animation(n_frames)
-{
-    this.n_frames = n_frames;
-    this.cur_frame = 0;
-    this.components = [];
-}
-
 function CanvasView(canvas, gridSize)
 {
     //set canvas
@@ -49,6 +10,9 @@ function CanvasView(canvas, gridSize)
     //set geometry
     this.center = {x:this.canvas.width / 2, y:this.canvas.height / 2};
     this.radius = this.center.x - 2;
+
+    this.lastFrameTimestamp = 0;
+    this.fps = 30;
 
     //set state of the game
     this.game_over = false;
@@ -69,6 +33,21 @@ CanvasView.prototype.drawTiles = function()
 
 CanvasView.prototype.updateFrame = function()
 {
+
+}
+
+CanvasView.prototype.renderAnimation = function()
+{
+    if(this.animations.length && this.animations[0].finished()) {
+        this.animations.pop();
+    }
+
+    if(this.animations.length == 0) {
+        //do nothing
+        return;
+    }
+
+    requestAnimationFrame(this.renderAnimation);
 
 }
 
@@ -191,8 +170,41 @@ CanvasView.prototype.handleMoveEvent = function(event)
     if(event.gameOver) this.gameOver();
 };
 
+CanvasView.prototype.getNewAnimationStartTime = function()
+{
+    if(this.animations.length) {
+        var a = this.animations[this.animations.length - 1];
+        return a.start_time + a.duration + 1000 / this.fps;
+    }
+    return new Date().getTime();
+}
+
 CanvasView.prototype.handleStepEvent = function(event)
 {
+    var animation = new Animation(250, this.getNewAnimationStartTime());
+    for(var i = 0; i < event.children.length; i++) {
+        if(event.name == 'RollEvent') {
+            animation.components.push(new RollAnimationComponenet(
+                new GridLocation(event.src_cell.row, event.src_cell.rank),
+                new GridLocation(event.dst_cell.row, event.dst_cell.rank),
+                event.value,
+                event.value
+            ));
+        } else if(event.name == 'RollAndMergeEvent') {
+            animation.components.push(new RollAnimationComponenet(
+                new GridLocation(event.src_cell.row, event.src_cell.rank),
+                new GridLocation(event.dst_cell.row, event.dst_cell.rank),
+                event.value / 2,
+                event.value
+            ));
+
+        } else if(event.name == 'RandomInsertionEvent') {
+            animation.components.push(new InsertAnimationComponent(
+                new GridLocation(event.dst_cell.row, event.dst_cell.rank),
+                event.value));
+        }
+    }
+    this.animations.push(animation);
 };
 
 CanvasView.prototype.handleResetEvent = function(event)
