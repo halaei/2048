@@ -1,7 +1,7 @@
 /**
  * HAVE FUN
 **/
-function haveFun()
+function haveFun(size)
 {
 	var game_div = document.getElementById("Triangular2048MainDiv");
     var view = game_div.getElementsByClassName("canvas_view")[0];
@@ -11,10 +11,10 @@ function haveFun()
     var highscore = game_div.getElementsByClassName("highscore")[0];
     var storage = new LocalStorageManager();
 	return new Game(
-		new Grid(4),
+		new Grid(size),
 		new StatusLog(storage),
 		[new KeyboardController(document), new TouchController(view), new Reset(reset)],
-		new CanvasView(view, 4),
+		new CanvasView(view, size),
         new Scorboard(score, highscore, 0, storage)
     );
 }

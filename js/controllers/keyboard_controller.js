@@ -21,7 +21,7 @@ function KeyboardController(game_div)
             var ch = String.fromCharCode(event.keyCode);
             if(direction_map[ch] !== undefined)
                 self.game.onMove(direction_map[ch]);
-            else if(ch == 'R')
+            else if(ch == 'N')
             {
                 self.game.reset();
             } else if(ch == 'U')
