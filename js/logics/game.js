@@ -1,4 +1,4 @@
-function Game(grid, eventLog, controllers, view, scoreboard)
+function Game(grid, eventLog, controllers, view, scoreboard, configuration)
 {
 	this.grid = grid;
 	this.controllers = controllers;
@@ -7,6 +7,7 @@ function Game(grid, eventLog, controllers, view, scoreboard)
 	this.view = view;
 	this.eventLog = eventLog;
     this.scoreboard = scoreboard;
+    this.configuration = configuration;
 
     this.handlers = [];
 
@@ -22,7 +23,7 @@ function Game(grid, eventLog, controllers, view, scoreboard)
         this.observers[i].register(this);
     }
 
-	this.initNumberOfTiles = 2;
+	this.initNumberOfTiles = this.configuration.numberOfRandomTiles();
 
     var status = eventLog.getCurrentStatus();
     if(status !== null) {
@@ -45,8 +46,11 @@ Game.prototype.registerControllers = function()
 Game.prototype.randomInsertTile = function()
 {
     var location = this.grid.getRandomAvailableCell();
+    if(location === null) {
+        return null;
+    }
     var cell = this.grid.cells[location[0]][location[1]];
-    cell.setTile(new Tile(2));
+    cell.setTile(new Tile(this.configuration.getNewTileValue()));
     return new RandomInsertionEvent(cell);
 };
 
@@ -98,7 +102,12 @@ Game.prototype.play = function()
         }
 
         var rand_step = new StepEvent();
-        rand_step.addChild(this.randomInsertTile());
+        for(var i = 0; i < this.configuration.numberOfRandomTiles(); i++) {
+            var e = this.randomInsertTile(this.configuration.getNewTileValue());
+            if(e !== null) {
+                rand_step.addChild(e);
+            }
+        }
         this.score += rand_step.score;
 
         ctrl_event.addStep(rand_step);
