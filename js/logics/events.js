@@ -137,10 +137,11 @@ initControlEventPrototype(UndoEvent);
 // do.                                               //
 ///////////////////////////////////////////////////////
 
-function BeginMoveHintEvent(direction)
+function BeginMoveHintEvent(direction, previews)
 {
     initEventObject(this);
     this.direction = direction;
+    this.previews = previews;
 }
 
 function EndMoveHintEvent()

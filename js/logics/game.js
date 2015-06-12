@@ -54,7 +54,6 @@ Game.prototype.randomInsertTile = function()
 
 Game.prototype.initTiles = function()
 {
-	this.tiles = [];
     this.score = 0;
 	for(var i = 0; i < this.configuration.initNumberOfTiles; i++)
 	{
@@ -132,7 +131,7 @@ Game.prototype.play = function()
 	};
     this.onBeginMoveHint = function(direction)
     {
-        this.dispatchEvents([new BeginMoveHintEvent(direction)]);
+        this.dispatchEvents([new BeginMoveHintEvent(direction, this.grid.getMovePreview(direction))]);
     };
     this.opEndMoveHint = function()
     {
@@ -170,7 +169,7 @@ Game.prototype.reset = function()
     this.grid = new Grid(this.grid.size);
     this.initTiles();
     this.play();
-}
+};
 
 Game.prototype.dispatchEvents = function(events)
 {
@@ -207,11 +206,10 @@ Game.prototype.getCellValues = function()
         }
     }
     return values;
-}
+};
 
 Game.prototype.setCellValues = function(values)
 {
-    this.tiles = [];
     var cells = this.grid.iterateInDirection(5);
     for(var i = 0; i < cells.length; i++) {
         if(values[i]) {
@@ -220,4 +218,4 @@ Game.prototype.setCellValues = function(values)
             cells[i].empty();
         }
     }
-}
+};
