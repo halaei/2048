@@ -130,6 +130,25 @@ function UndoEvent()
 initControlEventPrototype(UndoEvent);
 
 ///////////////////////////////////////////////////////
+//                Preview Events                     //
+//Events that does not affect the state of the game, //
+//but handlers of which can give the user visual     //
+// hints of the result of the move he/she is about to//
+// do.                                               //
+///////////////////////////////////////////////////////
+
+function BeginMoveHintEvent(direction)
+{
+    initEventObject(this);
+    this.direction = direction;
+}
+
+function EndMoveHintEvent()
+{
+    initEventObject(this);
+}
+
+///////////////////////////////////////////////////////
 //                Initialization                     //
 ///////////////////////////////////////////////////////
 
@@ -147,7 +166,10 @@ function initEventPrototypes()
         'MoveEvent',
         'ResetEvent',
         'UndoRequestEvent',
-        'UndoEvent'
+        'UndoEvent',
+        //Preview Events
+        'BeginMoveHintEvent',
+        'EndMoveHintEvent'
     ];
 
     function initEventPrototype(event_name)

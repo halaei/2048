@@ -142,7 +142,7 @@ CanvasView.prototype.drawTiles = function()
 CanvasView.prototype.renderAnimation = function()
 {
     var time = new Date().getTime();
-    while(this.animations.length && this.animations[0].finished(time)) {
+    if(this.animations.length && this.animations[0].finished(time)) {
         var a = this.animations.shift();
         a.commit(this.grid);
         this.draw();
@@ -268,6 +268,16 @@ CanvasView.prototype.handleStatusUpdateEvent = function(event)
     this.requestAnimationFrame();
 };
 
+CanvasView.prototype.handleBeginMoveHint = function(event)
+{
+    console.log('preview for moving in direction: ' + event.direction);
+};
+
+CanvasView.prototype.handleEndMoveHint = function(event)
+{
+    console.log('end of preview');
+};
+
 CanvasView.prototype.register = function(game)
 {
     /**
@@ -276,7 +286,8 @@ CanvasView.prototype.register = function(game)
     game.on('MoveEvent', this, this.handleMoveEvent);
     game.on('StepEvent', this, this.handleStepEvent);
     game.on('ResetEvent', this, this.handleResetEvent);
-
+    game.on('BeginMoveHintEvent', this, this.handleBeginMoveHint);
+    game.on('EndMoveHintEvent', this, this.handleEndMoveHint);
 };
 
 var fill_colors = {

@@ -130,6 +130,14 @@ Game.prototype.play = function()
 	{
 
 	};
+    this.onBeginMoveHint = function(direction)
+    {
+        this.dispatchEvents([new BeginMoveHintEvent(direction)]);
+    };
+    this.opEndMoveHint = function()
+    {
+        this.dispatchEvents([new EndMoveHintEvent()]);
+    };
 
 };
 
@@ -145,8 +153,16 @@ Game.prototype.gameOver = function()
 	};
 	this.onPlayback = function()
 	{
-
+        //do nothing
 	};
+    this.onBeginMoveHint = function()
+    {
+        //do nothing
+    };
+    this.opEndMoveHint = function()
+    {
+        //do nothing
+    };
 };
 
 Game.prototype.reset = function()
