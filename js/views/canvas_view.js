@@ -184,7 +184,7 @@ CanvasView.prototype.gameOver = function()
 
 CanvasView.prototype.handleMoveEvent = function(event)
 {
-    if(event.gameOver) this.gameOver();
+    if(event.game_over) this.gameOver();
     this.requestAnimationFrame();
 };
 

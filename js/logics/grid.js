@@ -1,6 +1,3 @@
-/**
- * Grid Class
-**/
 function Grid(size)
 {
 	this.size = size;
@@ -106,6 +103,43 @@ Grid.prototype.neighbor = function(cell, direction)
 Grid.prototype.step = function(direction)
 {
     var step_event = new StepEvent();
+    var previews = this.getMovePreview(direction);
+    for(var i = 0; i < previews.length; i++)
+    {
+        step_event.addChild(previews[i].apply());
+    }
+    return step_event;
+};
+
+function RollPreview(cell, neighbor)
+{
+    this.cell = cell;
+    this.neighbor = neighbor;
+}
+
+RollPreview.prototype.apply = function()
+{
+    this.cell.tile.roll(this.neighbor);
+    return new RollEvent(this.cell, this.neighbor);
+};
+
+function MergePreview(cell, neighbor)
+{
+    this.cell = cell;
+    this.neighbor = neighbor;
+}
+
+MergePreview.prototype.apply = function()
+{
+    this.cell.tile.merge(this.neighbor);
+    return new RollAndMergeEvent(this.cell, this.neighbor);
+};
+
+Grid.prototype.getMovePreview = function(direction)
+{
+    var previews = [];
+    var locked_neighbors = [];
+    var emptied_cells = [];
     var cells = this.iterateInDirection(direction);
     for(var i = 0; i < cells.length; i++)
     {
@@ -116,37 +150,45 @@ Grid.prototype.step = function(direction)
             {
                 if(neighbor.tile == null)
                 {
-                    //move tile to empty neighbor
-                    cells[i].tile.roll(neighbor);
-                    step_event.addChild(new RollEvent(cells[i], neighbor));
+                    emptied_cells.push({cell: cells[i], tile: cells[i].tile});
+                    cells[i].tile = null;
+                    previews.push(new RollPreview(cells[i], neighbor));
                 }
                 else if(! neighbor.locked && neighbor.tile.value == cells[i].tile.value)
                 {
-                    //merge tile with neighbor
-                    cells[i].tile.merge(neighbor);
-                    step_event.addChild(new RollAndMergeEvent(cells[i], neighbor));
+                    emptied_cells.push({cell: cells[i], tile: cells[i].tile});
+                    cells[i].tile = null;
+                    locked_neighbors.push(neighbor);
+                    neighbor.locked = true;
+                    previews.push(new MergePreview(cells[i], neighbor));
                 }
             }
         }
     }
-    return step_event;
+    for(i = 0; i < locked_neighbors.length; i++)
+    {
+        locked_neighbors[i].locked = false;
+    }
+    for(i = 0; i < emptied_cells.length; i++)
+    {
+        emptied_cells[i].cell.tile = emptied_cells[i].tile;
+    }
+    return previews;
 };
 
 Grid.prototype.gameIsOver = function()
 {
-    var non_empties = this.getEmptyCells();
-    if(non_empties.length < this.numverOfCells())
+    for(var i = 0; i < this.size; i++)
     {
-        return false;
-    }
-    for(var i = 0; i < non_empties.length; i++)
-    {
-        for(var j = 0 ; j < 6; j++)
+        for(var j = 0; j < 2 * i + 1; j++)
         {
-            var neighbor = this.neighbor(non_empties[i], [j]);
-            if(neighbor !== null && non_empties[i].value == neighbor.value)
-            {
+            if(this.cells[i][j].tile === null)
                 return false;
+            for(var d = 0; d < 6; d++)
+            {
+                var neighbor = this.neighbor(this.cells[i][j], d);
+                if(neighbor !== null && (neighbor.tile === null || this.cells[i][j].tile.value == neighbor.tile.value))
+                    return false;
             }
         }
     }
