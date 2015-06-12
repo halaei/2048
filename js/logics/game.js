@@ -23,8 +23,6 @@ function Game(grid, eventLog, controllers, view, scoreboard, configuration)
         this.observers[i].register(this);
     }
 
-	this.initNumberOfTiles = this.configuration.numberOfRandomTiles();
-
     var status = eventLog.getCurrentStatus();
     if(status !== null) {
         this.setStatus(status);
@@ -58,7 +56,7 @@ Game.prototype.initTiles = function()
 {
 	this.tiles = [];
     this.score = 0;
-	for(var i = 0; i < this.initNumberOfTiles; i++)
+	for(var i = 0; i < this.configuration.initNumberOfTiles; i++)
 	{
         this.score += this.randomInsertTile().score;
 	}

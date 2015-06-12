@@ -3,16 +3,19 @@ function haveFun(size)
 {
     var configurations = {
         3: {
+            initNumberOfTiles: 2,
             numberOfRandomTiles: function(){return 1;},
             getNewTileValue: function(){return 2;}
         },
         4: {
+            initNumberOfTiles: 3,
             numberOfRandomTiles: function(){return 1;},
             getNewTileValue: function(){return Math.random() < .7 ? 2 : 4;}
         },
         5: {
+            initNumberOfTiles: 3,
             numberOfRandomTiles: function(){return 2;},
-            getNewTileValue: function(){return 4}
+            getNewTileValue: function(){return Math.random() < .9 ? 4 : 8;}
         }
     };
     var conf = configurations[size] ? configurations[size]: configurations[5];

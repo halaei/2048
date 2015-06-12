@@ -25,7 +25,6 @@ function CanvasView(canvas, gridSize)
 CanvasView.prototype.makeBoard = function()
 {
     this.polygons = [];
-    this.texts = [];
     this.polygons.push(
         new CPolygon(
             makeRegularPolygon(3, this.radius, this.center.x, this.center.y, - Math.PI / 2),
@@ -50,9 +49,7 @@ CanvasView.prototype.makeBoard = function()
             triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
             this.polygons.push(new CPolygon(triangle, tile_style.line_style, tile_style.fill_style));
 
-            this.texts.push(new CText("0", {x: x, y: y[j % 2]}, tile_style.font, tile_style.font_style));
             x += size/2;
-
         }
     }
 };
@@ -61,9 +58,6 @@ CanvasView.prototype.drawBoard = function()
 {
     for(var i = 0; i < this.polygons.length; i++) {
         drawPolygon(this.context, this.polygons[i].vertex_list, this.polygons[i].line_style, this.polygons[i].fill_style);
-    }
-    for(i = 0; i < this.texts.length; i++) {
-        writeText(this.context, this.texts[i].text, this.texts[i].center.x, this.texts[i].center.y, this.texts[i].font, this.texts[i].font_style);
     }
 };
 
