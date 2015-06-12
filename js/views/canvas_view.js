@@ -101,33 +101,39 @@ CanvasView.prototype.drawTiles = function()
     var stripes = partitionToStripes(this.polygons[0].vertex_list, this.gridSize);
     var size = (stripes[1][1].x - stripes[0][1].x);
     var radius = size / Math.sqrt(3);
-    for(var i = 0; i < this.gridSize; i++)
+    for(var anglie_filter = 0; anglie_filter < 2; anglie_filter++)
     {
-        var n = 2 * i + 1;
-        var x = stripes[0][i].x;
-        var y = [
-            stripes[0][i].y + radius,
-            stripes[0][i + 1].y - radius
-        ];
-        for(var j = 0; j < n; j++)
+        for(var i = 0; i < this.gridSize; i++)
         {
-            if(this.grid[i][j].value) {
-                var tile_style = new TileStyle(this.grid[i][j].value, this.grid[i][j].text_size_factor);
+            var n = 2 * i + 1;
+            var x = stripes[0][i].x;
+            var y = [
+                stripes[0][i].y + radius,
+                stripes[0][i + 1].y - radius
+            ];
+            for(var j = 0; j < n; j++)
+            {
+                if(this.grid[i][j].value) {
+                    if((anglie_filter && this.grid[i][j].angle > Math.PI / 2) ||
+                        (! anglie_filter && this.grid[i][j].angle <= Math.PI / 2)) {
+                        var tile_style = new TileStyle(this.grid[i][j].value, this.grid[i][j].text_size_factor);
 
-                var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
-                var center = [{x: x, y: y[j % 2]}];
+                        var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
+                        var center = [{x: x, y: y[j % 2]}];
 
-                if(this.grid[i][j].angle && this.grid[i][j].move_direction !== null) {
-                    var axis = axisOfRotation(new GridLocation(i, j), this.grid[i][j].move_direction);
-                    triangle = rotatePolygon(triangle, axis, this.grid[i][j].angle);
-                    center = rotatePolygon(center, axis, this.grid[i][j].angle);
+                        if(this.grid[i][j].angle && this.grid[i][j].move_direction !== null) {
+                            var axis = axisOfRotation(new GridLocation(i, j), this.grid[i][j].move_direction);
+                            triangle = rotatePolygon(triangle, axis, this.grid[i][j].angle);
+                            center = rotatePolygon(center, axis, this.grid[i][j].angle);
+                        }
+
+                        drawPolygon(this.context, triangle, tile_style.line_style, tile_style.fill_style);
+
+                        writeText(this.context, this.grid[i][j].value, center[0].x, center[0].y, tile_style.font, tile_style.font_style);
+                    }
                 }
-
-                drawPolygon(this.context, triangle, tile_style.line_style, tile_style.fill_style);
-
-                writeText(this.context, this.grid[i][j].value, center[0].x, center[0].y, tile_style.font, tile_style.font_style);
+                x += size/2;
             }
-            x += size/2;
         }
     }
 
