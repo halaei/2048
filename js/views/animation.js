@@ -50,6 +50,11 @@ function HintAnimationComponent(src, dst, move_direction, old_value)
     this.old_value = old_value;
 }
 
+HintAnimationComponent.prototype.getFinalTile = function()
+{
+    return new CTile(this.old_value, Math.PI / 4, this.move_direction, Math.pow(Math.cos(Math.PI / 4), 2));
+};
+
 function Animation(duration, start_time, clear)
 {
     this.duration = duration;
@@ -111,6 +116,11 @@ Animation.prototype.commit = function(grid)
                 grid[i][j].direction = null;
                 grid[i][j].text_size_factor = 1;
             }
+        }
+    } else {
+        for(i = 0; i < this.hints.length; i++) {
+            var e = this.hints[i];
+            grid[e.src.row][e.src.rank] = e.getFinalTile();
         }
     }
 };
