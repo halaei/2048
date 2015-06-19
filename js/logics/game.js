@@ -111,6 +111,8 @@ Game.prototype.play = function()
 
         ctrl_event.setStatusUpdateEvent(new StatusUpdateEvent(this.score, this.getCellValues()));
 
+        this.grid.changeLuckOfAllCells(false);
+
         if(this.grid.gameIsOver())
         {
             ctrl_event.game_over = true;

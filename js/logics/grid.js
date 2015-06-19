@@ -115,6 +115,7 @@ function RollPreview(cell, neighbor)
 {
     this.cell = cell;
     this.neighbor = neighbor;
+    this.move_direction = cell.locateNeighbor(neighbor);
 }
 
 RollPreview.prototype.apply = function()
@@ -127,6 +128,7 @@ function MergePreview(cell, neighbor)
 {
     this.cell = cell;
     this.neighbor = neighbor;
+    this.move_direction = cell.locateNeighbor(neighbor);
 }
 
 MergePreview.prototype.apply = function()

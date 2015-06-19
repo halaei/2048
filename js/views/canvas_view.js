@@ -20,6 +20,10 @@ function CanvasView(canvas, gridSize)
     this.game_over = false;
 
     this.animations = [];
+
+    //is set to merge hint animation with the next step event
+    this.merge_hint = false;
+
 }
 
 CanvasView.prototype.makeBoard = function()
@@ -184,6 +188,7 @@ CanvasView.prototype.gameOver = function()
 
 CanvasView.prototype.handleMoveEvent = function(event)
 {
+    this.merge_hint = true;
     if(event.game_over) this.gameOver();
     this.requestAnimationFrame();
 };
@@ -201,6 +206,11 @@ CanvasView.prototype.getNewAnimationStartTime = function()
 CanvasView.prototype.handleStepEvent = function(event)
 {
     var animation = new Animation(200, this.getNewAnimationStartTime(), false);
+    if(this.merge_hint) {
+        animation.duration *= 3/4;
+        animation.merge_hint = true;
+        this.merge_hint = false;
+    }
     for(var i = 0; i < event.children.length; i++) {
         if(event.children[i].name == 'RollEvent') {
             animation.rolls.push(new RollAnimationComponenet(
@@ -230,6 +240,7 @@ CanvasView.prototype.handleStepEvent = function(event)
 
 CanvasView.prototype.handleResetEvent = function(event)
 {
+    this.merge_hint = true;
     this.handleStatusUpdateEvent(event.children[0]);
 };
 
@@ -268,13 +279,36 @@ CanvasView.prototype.handleStatusUpdateEvent = function(event)
     this.requestAnimationFrame();
 };
 
+CanvasView.prototype.clearHints = function()
+{
+    for(var i = this.animations.length - 1; i >= 0; i--) {
+        if(this.animations[i].hints.length > 0) {
+            this.animations[i].clear_hints = true;
+            this.animations[i].finished = function(){return true;};
+        }
+    }
+    this.animations.push(newClearHintAnimation(this.getNewAnimationStartTime()));
+};
+
 CanvasView.prototype.handleBeginMoveHint = function(event)
 {
     console.log('preview for moving in direction: ' + event.direction);
+
+    this.clearHints();
+
+    var animation = new Animation(50, this.getNewAnimationStartTime(), false);
+    for(var i = 0; i < event.previews.length; i++) {
+        animation.hints.push(new HintAnimationComponent(event.previews[i].cell, event.previews[i].neighbor,
+            event.previews[i].move_direction, event.previews[i].cell.tile.value));
+    }
+    this.animations.push(animation);
+    this.requestAnimationFrame();
 };
 
 CanvasView.prototype.handleEndMoveHint = function(event)
 {
+    this.clearHints();
+    this.requestAnimationFrame();
     console.log('end of preview');
 };
 
