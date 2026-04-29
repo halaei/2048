@@ -105,6 +105,46 @@ CanvasView.prototype.drawTiles = function()
     var stripes = partitionToStripes(this.polygons[0].vertex_list, this.gridSize);
     var size = (stripes[1][1].x - stripes[0][1].x);
     var radius = size / Math.sqrt(3);
+
+    function getCellCenter(row, rank) {
+        if (row < 0 || row >= self.gridSize || rank < 0 || rank >= 2 * row + 1) {
+            return null;
+        }
+        return {
+            x: stripes[0][row].x + rank * size / 2,
+            y: [stripes[0][row].y + radius, stripes[0][row + 1].y - radius][rank % 2]
+        };
+    }
+
+    function getNextLocation(location, direction) {
+        if (location.rank % 2) {
+            switch (direction) {
+                case 0:
+                case 5:
+                    return { row: location.row - 1, rank: location.rank - 1 };
+                case 1:
+                case 2:
+                    return { row: location.row, rank: location.rank + 1 };
+                case 3:
+                case 4:
+                    return { row: location.row, rank: location.rank - 1 };
+            }
+        } else {
+            switch (direction) {
+                case 0:
+                case 1:
+                    return { row: location.row, rank: location.rank + 1 };
+                case 2:
+                case 3:
+                    return { row: location.row + 1, rank: location.rank + 1 };
+                case 4:
+                case 5:
+                    return { row: location.row, rank: location.rank - 1 };
+                }
+        }
+        return null;
+    }
+
     for(var anglie_filter = 0; anglie_filter < 2; anglie_filter++)
     {
         for(var i = 0; i < this.gridSize; i++)
@@ -120,20 +160,33 @@ CanvasView.prototype.drawTiles = function()
                 if(this.grid[i][j].value) {
                     if((anglie_filter && this.grid[i][j].angle > Math.PI / 2) ||
                         (! anglie_filter && this.grid[i][j].angle <= Math.PI / 2)) {
-                        var tile_style = new TileStyle(this.grid[i][j].value, this.grid[i][j].text_size_factor);
+                        var tile_style = new TileStyle(
+                            this.grid[i][j].value,
+                            //this.grid[i][j].text_size_factor
+                            1
+                        );
 
                         var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
-                        var center = [{x: x, y: y[j % 2]}];
+                        var center = {x: x, y: y[j % 2]};
+                        var textCenter = {x: center.x, y: center.y};
+                        var textMatrix = [1, 0, 0, 1, 0, 0];
 
                         if(this.grid[i][j].angle && this.grid[i][j].move_direction !== null) {
                             var axis = axisOfRotation(new GridLocation(i, j), this.grid[i][j].move_direction);
-                            triangle = rotatePolygon(triangle, axis, this.grid[i][j].angle);
-                            center = rotatePolygon(center, axis, this.grid[i][j].angle);
+                            triangle = rotatePolygon2D(triangle, axis.point, axis.direction, this.grid[i][j].angle);
+                            textMatrix = getRotationTransform2D(axis.point, axis.direction, this.grid[i][j].angle, true);
+
+                            if(this.grid[i][j].angle > Math.PI / 2) {
+                                var nextLoc = getNextLocation(new GridLocation(i, j), this.grid[i][j].move_direction);
+                                var nextCenter = nextLoc ? getCellCenter(nextLoc.row, nextLoc.rank) : null;
+                                if(nextCenter) {
+                                    textCenter = nextCenter;
+                                }
+                            }
                         }
 
                         drawPolygon(this.context, triangle, tile_style.line_style, tile_style.fill_style);
-
-                        writeText(this.context, this.grid[i][j].value, center[0].x, center[0].y, tile_style.font, tile_style.font_style);
+                        drawTextTransformed(this.context, this.grid[i][j].value, textCenter.x, textCenter.y, tile_style.font, tile_style.font_style, textMatrix);
                     }
                 }
                 x += size/2;

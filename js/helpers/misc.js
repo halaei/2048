@@ -123,6 +123,56 @@ function rotatePolygon(polygon, axis, angle)
     return points;
 }
 
+function getRotationTransform2D(axisPoint, axisDir, angle, keepUpright)
+{
+    var dx = axisDir.x;
+    var dy = axisDir.y;
+    var len = Math.sqrt(dx * dx + dy * dy);
+    if(len === 0) {
+        return [1, 0, 0, 1, 0, 0];
+    }
+    var ux = dx / len;
+    var uy = dy / len;
+    var c = Math.cos(angle);
+    if(keepUpright && c < 0) {
+        c = -c;
+    }
+    var a = ux * ux + c * uy * uy;
+    var b = ux * uy * (1 - c);
+    var d = uy * uy + c * ux * ux;
+    var e = axisPoint.x - (a * axisPoint.x + b * axisPoint.y);
+    var f = axisPoint.y - (b * axisPoint.x + d * axisPoint.y);
+    return [a, b, b, d, e, f];
+}
+
+function transformPoint2D(point, matrix)
+{
+    return {
+        x: matrix[0] * point.x + matrix[2] * point.y + matrix[4],
+        y: matrix[1] * point.x + matrix[3] * point.y + matrix[5]
+    };
+}
+
+function rotatePolygon2D(polygon, axisPoint, axisDir, angle)
+{
+    var matrix = getRotationTransform2D(axisPoint, axisDir, angle, false);
+    return polygon.map(function(point) {
+        return transformPoint2D(point, matrix);
+    });
+}
+
+function drawTextTransformed(context, text, x, y, font, fontStyle, matrix)
+{
+    context.save();
+    context.setTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+    context.textAlign = "center";
+    context.textBaseline = 'middle';
+    context.fillStyle = fontStyle;
+    context.font = font;
+    context.fillText(text, x, y);
+    context.restore();
+}
+
 function interpolateLocation(point1, point2, weight1, weight2)
 {
     var w = weight1 + weight2;
