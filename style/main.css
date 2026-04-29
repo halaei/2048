@@ -109,7 +109,7 @@ hr {
 }
 
 #Triangular2048MainDiv {
-    width: 500px;
+    width: min(100%, 500px);
     margin: 0 auto;
     border: 4px solid #9BC6DA;
     padding: 30px;
@@ -128,17 +128,19 @@ hr {
     touch-action: none;
     background: #9BC6DA;
     border-radius: 50%;
-    width: 500px;
-    height: 500px;
+    width: min(100%, 500px);
+    aspect-ratio: 1 / 1;
+    height: auto;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     margin-bottom: 30px;
 }
 
-.view-container.canvas_view {
-    width: 500px;
-    height: 500px;
+.canvas_view {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .view-container .game-message {
@@ -237,11 +239,13 @@ hr {
 @media screen and (max-width: 520px) {
     html, body {
         font-size: 15px;
+        min-height: 100%;
     }
 
     body {
-        margin: 20px 0;
-        padding: 0 20px;
+        margin: 0;
+        padding: 8px 10px 14px;
+        background: #faf8ef;
     }
 
     h1.title {
@@ -250,11 +254,13 @@ hr {
     }
 
     #Triangular2048MainDiv {
-        width: 280px;
+        width: min(100%, 500px);
+        max-width: 100%;
         margin: 0 auto;
         border: 2px solid #9BC6DA;
-        padding: 3px;
-        border-radius: 3px;
+        padding: 12px;
+        border-radius: 18px;
+        box-sizing: border-box;
     }
 
     .score, .highscore {
@@ -268,22 +274,23 @@ hr {
     }
 
     .game-intro {
-        width: 55%;
+        width: 100%;
         display: block;
         box-sizing: border-box;
         line-height: 1.65;
+        margin-bottom: 10px;
     }
 
     .restart-button {
-        width: 42%;
+        width: 100%;
         padding: 0;
         display: block;
         box-sizing: border-box;
-        margin-top: 2px;
+        margin-top: 10px;
     }
 
     .view-container {
-        margin-top: 17px;
+        margin-top: 12px;
         position: relative;
         padding: 10px;
         cursor: default;
@@ -294,10 +301,12 @@ hr {
         -ms-user-select: none;
         -ms-touch-action: none;
         touch-action: none;
-        background: #bbada0;
-        border-radius: 6px;
-        width: 280px;
-        height: 280px;
+        background: #9BC6DA;
+        border-radius: 50%;
+        width: 100%;
+        max-width: 100%;
+        aspect-ratio: 1 / 1;
+        height: auto;
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
