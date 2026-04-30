@@ -239,6 +239,12 @@ CanvasView.prototype.drawTiles = function () {
                         }
 
                         // 2. GRADIENT
+                        var tiltIntensity = Math.sin(this.grid[i][j].angle);
+
+                        // Calculate a "shadow" color by slightly darkening the base
+                        // You could add a helper to your TileStyle or just use rgba overlay
+                        var shadowOpacity = tiltIntensity * 0.4;
+
                         var grad = this.context.createRadialGradient(
                             centerX + lightShiftX, centerY + lightShiftY, radius * 0.05,
                             centerX, centerY, radius
@@ -250,7 +256,8 @@ CanvasView.prototype.drawTiles = function () {
                             grad.addColorStop(1, tile_style.colors.base);
                         } else {
                             grad.addColorStop(0, tile_style.colors.light);
-                            grad.addColorStop(1, tile_style.colors.base);
+                            grad.addColorStop(0.7, tile_style.colors.base);
+                            grad.addColorStop(1, "rgba(0,0,0," + shadowOpacity + ")");
                         }
 
 

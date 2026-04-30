@@ -36,9 +36,10 @@ h1.title {
     position: relative;
     display: inline-block;
     background: #bbada0;
-    padding: 15px 25px;
+    padding: 15px 10px;
     font-size: 22px;
-    height: 25px;
+    height: 35px;
+    min-width: 90px;
     line-height: 47px;
     font-weight: bold;
     border-radius: 3px;
@@ -223,16 +224,21 @@ hr {
 
 .restart-button {
     display: inline-block;
-    background: #8f7a66;
-    border-radius: 3px;
+    background: #9BC6DA;
+    border-radius: 6px;
     padding: 0 20px;
     text-decoration: none;
-    color: #f9f6f2;
+    color: white;
     height: 40px;
     line-height: 42px;
     display: block;
     text-align: center;
     float: right;
+    transition: background 0.2s;
+}
+
+.restart-button:hover {
+    background: #7eb3cc;
 }
 
 .game-explanation {
@@ -305,4 +311,46 @@ hr {
 
 .help {
     text-align: center;
+    font-size: 12px;
+    opacity: 0.6;
+    margin-top: 10px;
+}
+
+.game-modes {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.mode-link {
+    flex: 1;
+    background: #bbada0;
+    color: #f9f6f2;
+    text-align: center;
+    padding: 8px 0;
+    border-radius: 3px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.mode-link:hover {
+    background: #8f7a66;
+    text-decoration: none;
+}
+
+.mode-link.active {
+    background: #9BC6DA;
+    color: white;
+}
+
+/* Adjust mobile sizing */
+@media screen and (max-width: 520px) {
+    .mode-link {
+        font-size: 12px;
+        padding: 6px 0;
+    }
 }
