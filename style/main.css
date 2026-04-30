@@ -111,6 +111,7 @@ hr {
 #Triangular2048MainDiv {
     width: min(100%, 500px);
     margin: 0 auto;
+    background: #faf8ef; /* Match the page background */
     border: 4px solid #9BC6DA;
     padding: 30px;
     border-radius: 30px;
@@ -127,7 +128,12 @@ hr {
     -ms-touch-action: none;
     touch-action: none;
     background: #9BC6DA;
+    border: none;
     border-radius: 50%;
+    padding: 0;
+    box-shadow: 
+        inset 0 10px 20px rgba(0,0,0,0.1), /* This creates the "dish" depth */
+        0 5px 15px rgba(155, 198, 218, 0.4); /* A blue-tinted soft glow */
     width: min(100%, 500px);
     aspect-ratio: 1 / 1;
     height: auto;
@@ -236,6 +242,7 @@ hr {
     width: 100px;
     margin: auto;
 }
+
 @media screen and (max-width: 520px) {
     html, body {
         font-size: 15px;
@@ -254,126 +261,37 @@ hr {
     }
 
     #Triangular2048MainDiv {
-        width: min(100%, 500px);
+        width: 100%;
         max-width: 100%;
         margin: 0 auto;
-        border: 2px solid #9BC6DA;
         padding: 12px;
         border-radius: 18px;
         box-sizing: border-box;
+        background: #faf8ef; 
+        border: 4px solid #9BC6DA; 
+        box-shadow: none; 
     }
 
-    .score, .highscore {
-        margin-top: 0;
-        padding: 15px 10px;
-        min-width: 40px;
-    }
-
-    .heading {
-        margin-bottom: 10px;
-    }
-
-    .game-intro {
-        width: 100%;
-        display: block;
-        box-sizing: border-box;
-        line-height: 1.65;
-        margin-bottom: 10px;
-    }
-
-    .restart-button {
-        width: 100%;
-        padding: 0;
-        display: block;
-        box-sizing: border-box;
-        margin-top: 10px;
-    }
-
+    /* THE FIX: Removed white border and padding to reclaim space */
     .view-container {
         margin-top: 12px;
         position: relative;
-        padding: 10px;
-        cursor: default;
-        -webkit-touch-callout: none;
-        -ms-touch-callout: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        -ms-touch-action: none;
-        touch-action: none;
-        background: #9BC6DA;
+        padding: 0;           /* RECLAIMED SPACE */
+        background: #9BC6DA; 
+        border: none;         /* REMOVED WASTE */
+        box-shadow: 
+            inset 0 10px 20px rgba(0,0,0,0.1), 
+            0 5px 15px rgba(155, 198, 218, 0.4);
         border-radius: 50%;
         width: 100%;
         max-width: 100%;
         aspect-ratio: 1 / 1;
         height: auto;
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
         box-sizing: border-box;
         margin-bottom: 5px;
     }
 
-    .view-container .game-message {
-        display: none;
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        background: rgba(238, 228, 218, 0.5);
-        z-index: 100;
-        text-align: center;
-        -webkit-animation: fade-in 800ms ease 1200ms;
-        -moz-animation: fade-in 800ms ease 1200ms;
-        animation: fade-in 800ms ease 1200ms;
-        -webkit-animation-fill-mode: both;
-        -moz-animation-fill-mode: both;
-        animation-fill-mode: both;
-    }
-
     .view-container .game-message p {
-        font-size: 60px;
-        font-weight: bold;
-        height: 60px;
-        line-height: 60px;
-        margin-top: 222px;
-    }
-
-    .view-container .game-message .lower {
-        display: block;
-        margin-top: 59px;
-    }
-
-    .view-container .game-message a {
-        display: inline-block;
-        background: #8f7a66;
-        border-radius: 3px;
-        padding: 0 20px;
-        text-decoration: none;
-        color: #f9f6f2;
-        height: 40px;
-        line-height: 42px;
-        margin-left: 9px;
-    }
-
-    .view-container .game-message a.keep-playing-button {
-        display: none;
-    }
-
-    .view-container .game-message.game-won {
-        background: rgba(237, 194, 46, 0.5);
-        color: #f9f6f2;
-    }
-
-    .view-container .game-message.game-won a.keep-playing-button {
-        display: inline-block;
-    }
-
-    .view-container .game-message.game-won, .view-container .game-message.game-over {
-        display: block;
-    }
-
-    .game-message p {
         font-size: 30px !important;
         height: 30px !important;
         line-height: 30px !important;
@@ -384,6 +302,7 @@ hr {
         margin-top: 30px !important;
     }
 }
+
 .help {
     text-align: center;
 }
