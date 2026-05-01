@@ -164,7 +164,7 @@ function rotatePolygon2D(polygon, axisPoint, axisDir, angle)
 function drawTextTransformed(context, text, x, y, font, fontStyle, matrix)
 {
     context.save();
-    context.setTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+    context.transform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
     context.textAlign = "center";
     context.textBaseline = 'middle';
     context.fillStyle = fontStyle;
