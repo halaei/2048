@@ -3,12 +3,25 @@ function CanvasView(canvas, gridSize) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d");
 
+    // --- DPI FIX START ---
+    var logicalWidth = parseInt(canvas.getAttribute("width") || 500, 10);
+    var logicalHeight = parseInt(canvas.getAttribute("height") || 500, 10);
+    var dpr = window.devicePixelRatio || 1;
+
+    // Scale canvas buffer size physically
+    this.canvas.width = logicalWidth * dpr;
+    this.canvas.height = logicalHeight * dpr;
+    
+    // Normalize coordinate system so drawing logic remains unchanged
+    this.context.scale(dpr, dpr);
+    // --- DPI FIX END ---
+
     //set grid size
     this.gridSize = gridSize;
     this.initGrid();
 
-    //set geometry
-    this.center = { x: this.canvas.width / 2, y: this.canvas.height / 2 };
+    //set geometry (Fixed: Use logical dimensions rather than actual scaled buffer widths)
+    this.center = { x: logicalWidth / 2, y: logicalHeight / 2 };
     this.radius = this.center.x - 6;
 
     this.fps = 30;
@@ -23,7 +36,6 @@ function CanvasView(canvas, gridSize) {
     //is set to merge hint animation with the next step event
     this.merge_hint = false;
     this.debug = false;
-
 }
 
 CanvasView.prototype.makeBoard = function () {
