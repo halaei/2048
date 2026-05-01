@@ -449,19 +449,34 @@ CanvasView.prototype.register = function (game) {
     game.on('EndMoveHintEvent', this, this.handleEndMoveHint);
 };
 
+// var TILE_PALETTE = {
+//     0: { base: '#f0f0f0', light: '#ffffff', shadow: '#d1d1d1' }, // White
+//     2: { base: '#b0b0b0', light: '#e0e0e0', shadow: '#888888' }, // DarkGray
+//     4: { base: '#008b8b', light: '#00b3b3', shadow: '#005f5f' }, // DarkCyan
+//     8: { base: '#006400', light: '#009900', shadow: '#003300' }, // DarkGreen
+//     16: { base: '#8b008b', light: '#b300b3', shadow: '#5f005f' }, // DarkMagenta
+//     32: { base: '#ff8c00', light: '#ffb347', shadow: '#cc7000' }, // DarkOrange
+//     64: { base: '#8b0000', light: '#b30000', shadow: '#5f0000' }, // DarkRed
+//     128: { base: '#4A90E2', light: '#7EBFFF', shadow: '#215999' }, // SkyBlue
+//     256: { base: '#00ff7f', light: '#66ffb2', shadow: '#00cc66' }, // SpringGreen
+//     512: { base: '#ff00ff', light: '#ff66ff', shadow: '#cc00cc' }, // Magenta
+//     1024: { base: '#ffa500', light: '#ffc14d', shadow: '#cc8400' }, // Orange
+//     2048: { base: '#ff0000', light: '#ff6666', shadow: '#cc0000' }  // Red
+// };
+
 var TILE_PALETTE = {
-    0: { base: '#f0f0f0', light: '#ffffff', shadow: '#d1d1d1' }, // White
-    2: { base: '#b0b0b0', light: '#e0e0e0', shadow: '#888888' }, // DarkGray
-    4: { base: '#008b8b', light: '#00b3b3', shadow: '#005f5f' }, // DarkCyan
-    8: { base: '#006400', light: '#009900', shadow: '#003300' }, // DarkGreen
-    16: { base: '#8b008b', light: '#b300b3', shadow: '#5f005f' }, // DarkMagenta
-    32: { base: '#ff8c00', light: '#ffb347', shadow: '#cc7000' }, // DarkOrange
-    64: { base: '#8b0000', light: '#b30000', shadow: '#5f0000' }, // DarkRed
-    128: { base: '#4A90E2', light: '#7EBFFF', shadow: '#215999' }, // SkyBlue
-    256: { base: '#00ff7f', light: '#66ffb2', shadow: '#00cc66' }, // SpringGreen
-    512: { base: '#ff00ff', light: '#ff66ff', shadow: '#cc00cc' }, // Magenta
-    1024: { base: '#ffa500', light: '#ffc14d', shadow: '#cc8400' }, // Orange
-    2048: { base: '#ff0000', light: '#ff6666', shadow: '#cc0000' }  // Red
+    0:    { base: '#f0f0f0', light: '#ffffff' }, // Empty Slot
+    2:    { base: '#9BC6DA', light: '#C6E2EE' }, // Soft Blue (Starting)
+    4:    { base: '#4A90E2', light: '#7EBFFF' }, // Sapphire
+    8:    { base: '#27AE60', light: '#58D68D' }, // Emerald
+    16:   { base: '#8E44AD', light: '#BB8FCE' }, // Amethyst
+    32:   { base: '#D35400', light: '#EB984E' }, // Amber
+    64:   { base: '#C0392B', light: '#E74C3C' }, // Ruby
+    128:  { base: '#1ABC9C', light: '#48C9B0' }, // Turquoise
+    256:  { base: '#2C3E50', light: '#5D6D7E' }, // Obsidian
+    512:  { base: '#F39C12', light: '#F7DC6F' }, // Topaz
+    1024: { base: '#E67E22', light: '#F0B27A' }, // Fire Opal
+    2048: { base: '#D4AF37', light: '#F1C40F' }  // GOLD (The Goal)
 };
 
 function TileStyle(value, size_factor) {
