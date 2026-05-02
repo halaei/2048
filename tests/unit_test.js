@@ -5,6 +5,11 @@ function UnitTest()
 
 UnitTest.prototype.mocks = [];
 
+// Export for CommonJS (Node.js)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UnitTest;
+}
+
 UnitTest.prototype.close = function()
 {
     while(this.mocks.length > 0)
@@ -54,9 +59,11 @@ UnitTest.prototype.assertAlmostEqual = function(expected, actual, message, data)
 
 UnitTest.prototype.run = function()
 {
-    document.write("<h1>" + this.testDescription + "</h1>")
-    document.write("<ul>");
+    console.log("\n🧪 " + this.testDescription);
     var empty = true;
+    var passedCount = 0;
+    var failedCount = 0;
+    
     for(var test in this)
     {
         if(typeof(this[test]) === "function" && test.search("test") == 0)
@@ -68,27 +75,33 @@ UnitTest.prototype.run = function()
                 this[test]();
                 this.tearDown();
                 this.pass(test);
+                passedCount++;
             }
             catch(exception)
             {
                 this.fail(test, exception);
+                failedCount++;
             }
         }
     }
+    
     if(empty)
     {
-        document.write('<li style="color: orangered">' + "no test function found" + "</li>");
+        console.log("  ⚠️  no test function found");
     }
-    document.write("</ul>")
+    else
+    {
+        console.log(`  📊 Results: ${passedCount} passed, ${failedCount} failed`);
+    }
 };
 
 UnitTest.prototype.pass = function(test)
 {
-    document.write('<li style="color: green">' + test +"() passed </li>");
+    console.log("  ✅ " + test + "() passed");
 };
 
 UnitTest.prototype.fail = function(test, exception)
 {
-    document.write('<li style="color: red">' + test + "() failed: " + exception.message + "</li>");
-    console.log(exception);
+    console.log("  ❌ " + test + "() failed: " + exception.message);
+    console.log("     📋 Error details:", exception.stack || exception);
 };

@@ -181,3 +181,8 @@ function interpolateLocation(point1, point2, weight1, weight2)
         y: (point1.y * weight1 + point2.y * weight2) / w
     };
 }
+
+/// Polyfill for old browsers that don't have globalThis
+if (typeof globalThis === 'undefined' && typeof window !== 'undefined') {
+    globalThis = window;
+}

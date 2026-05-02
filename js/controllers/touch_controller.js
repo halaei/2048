@@ -83,7 +83,7 @@ function TouchController(view_div)
             //                altKey, shiftKey, metaKey, button, relatedTarget);
 
             var simulatedEvent = document.createEvent("MouseEvent");
-            simulatedEvent.initMouseEvent(type, true, true, window, 1,
+            simulatedEvent.initMouseEvent(type, true, true, globalThis, 1,
                 first.screenX, first.screenY,
                 first.clientX, first.clientY, false,
                 false, false, false, 0/*left*/, null);

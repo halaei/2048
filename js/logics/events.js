@@ -176,7 +176,7 @@ function initEventPrototypes()
 
     function initEventPrototype(event_name)
     {
-        window[event_name].prototype.name = event_name;
+        globalThis[event_name].prototype.name = event_name;
     }
 
     for(var i = 0; i < events.length; i++)

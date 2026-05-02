@@ -4,6 +4,11 @@ function Mock()
     UnitTest.prototype.mocks.push(this);
 }
 
+// Export for CommonJS (Node.js)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Mock;
+}
+
 Mock.prototype.shouldReceive = function(method)
 {
     function arraysEqual(a, b) {

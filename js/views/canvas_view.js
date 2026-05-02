@@ -6,7 +6,7 @@ function CanvasView(canvas, gridSize) {
     // --- DPI FIX START ---
     var logicalWidth = parseInt(canvas.getAttribute("width") || 500, 10);
     var logicalHeight = parseInt(canvas.getAttribute("height") || 500, 10);
-    var dpr = window.devicePixelRatio || 1;
+    var dpr = globalThis.devicePixelRatio || 1;
 
     // Scale canvas buffer size physically
     this.canvas.width = logicalWidth * dpr;

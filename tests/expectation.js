@@ -5,6 +5,11 @@ function Expectation(method)
     this.return_value = null;
 }
 
+// Export for CommonJS (Node.js)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Expectation;
+}
+
 Expectation.prototype.with = function()
 {
     this.arguments = arguments;

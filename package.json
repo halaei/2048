@@ -1,0 +1,12 @@
+{
+  "name": "2048-game",
+  "version": "1.0.0",
+  "description": "A 2048 game implementation",
+  "main": "index.html",
+  "scripts": {
+    "test": "node tests/test_runner.js"
+  },
+  "devDependencies": {
+    "jsdom": "^22.1.0"
+  }
+}
