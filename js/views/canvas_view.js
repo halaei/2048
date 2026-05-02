@@ -308,7 +308,7 @@ CanvasView.prototype.renderAnimation = function () {
         // Check if this was the last animation and a win is pending
         if (this.animations.length === 0) {
             if (this.pendingWinMessage) {
-                this.showGameMessage("Alchemist Supreme!", false);
+                this.showGameMessage("The Apex Reached!", false);
                 this.pendingWinMessage = false;
             } else if (this.pendingGameOverMessage) {
                 this.showGameMessage("Game Over!", true);
