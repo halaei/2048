@@ -9,6 +9,7 @@ function Game(grid, eventLog, controllers, view, scoreboard, configuration)
     this.scoreboard = scoreboard;
     this.configuration = configuration;
 
+    this.won = false;
     this.handlers = [];
 
     //TODO: constructor should get observers in array without knowing the role of each
@@ -70,6 +71,9 @@ Game.prototype.setStatus = function(status)
 {
     this.score = status[0];
     this.setCellValues(status[1]);
+    if (this.getCellValues().indexOf(2048) !== -1) {
+        this.won = true;
+    }
     var event = new StatusUpdateEvent(this.score, this.getCellValues());
     var reset = new ResetEvent(event);
     this.dispatchEvents([reset]);
@@ -112,6 +116,11 @@ Game.prototype.play = function()
         ctrl_event.setStatusUpdateEvent(new StatusUpdateEvent(this.score, this.getCellValues()));
 
         this.grid.changeLuckOfAllCells(false);
+
+        if (!this.won && this.getCellValues().indexOf(2048) !== -1) {
+            this.won = true;
+            ctrl_event.won = true;
+        }
 
         if(this.grid.gameIsOver())
         {

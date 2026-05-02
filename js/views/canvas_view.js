@@ -30,7 +30,9 @@ function CanvasView(canvas, gridSize) {
 
     //set state of the game
     this.game_over = false;
-
+    this.pendingGameOverMessage = false;
+    this.hasWon = false;
+    this.pendingWinMessage = false;
     this.animations = [];
 
     //is set to merge hint animation with the next step event
@@ -303,6 +305,16 @@ CanvasView.prototype.renderAnimation = function () {
         var a = this.animations.shift();
         a.commit(this.grid);
         this.draw();
+        // Check if this was the last animation and a win is pending
+        if (this.animations.length === 0) {
+            if (this.pendingWinMessage) {
+                this.showGameMessage("Alchemist Supreme!", false);
+                this.pendingWinMessage = false;
+            } else if (this.pendingGameOverMessage) {
+                this.showGameMessage("Game Over!", true);
+                this.pendingGameOverMessage = false;
+            }
+        }
         this.requestAnimationFrame();
         return;
     }
@@ -319,6 +331,30 @@ CanvasView.prototype.renderAnimation = function () {
 
 };
 
+CanvasView.prototype.showGameMessage = function(text, isGameOver) {
+    const container = document.getElementById("game-message");
+    const textElement = document.getElementById("message-text");
+    const keepGoing = container.querySelector(".keep-playing-button");
+    const retry = container.querySelector(".retry-button");
+
+    if (container && textElement) {
+        textElement.textContent = text;
+        container.classList.remove("hidden", "game-won", "game-over");
+
+        if (isGameOver) {
+            container.classList.add("game-over");
+            keepGoing.classList.add("hidden");
+            retry.classList.remove("hidden");
+            retry.onclick = () => this.reset(); 
+        } else {
+            container.classList.add("game-won")
+            keepGoing.classList.remove("hidden");
+            retry.classList.add("hidden");
+            keepGoing.onclick = () => container.classList.add("hidden");
+        }
+    }
+};
+
 CanvasView.prototype.requestAnimationFrame = function () {
     var self = this;
     requestAnimationFrame(function () {
@@ -333,11 +369,16 @@ CanvasView.prototype.draw = function () {
 
 CanvasView.prototype.gameOver = function () {
     this.game_over = true;
+    this.pendingGameOverMessage = true;
     console.log("game is over");
 };
 
 CanvasView.prototype.handleMoveEvent = function (event) {
     this.merge_hint = true;
+    if (event.won && !this.hasWon) {
+        this.pendingWinMessage = true;
+        this.hasWon = true; 
+    }
     if (event.game_over) this.gameOver();
     this.requestAnimationFrame();
 };
@@ -454,6 +495,11 @@ CanvasView.prototype.register = function (game) {
     /**
      * to check if game is over
      */
+    this.reset = function() {
+        game.reset();
+        const container = document.getElementById("game-message");
+        container.classList.add("hidden");
+    };
     game.on('MoveEvent', this, this.handleMoveEvent);
     game.on('StepEvent', this, this.handleStepEvent);
     game.on('ResetEvent', this, this.handleResetEvent);

@@ -90,6 +90,7 @@ function MoveEvent(directions)
     initEventObject(this);
     this.directions = directions;
     this.game_over = false;
+    this.won = false;
     this.children[0] = null;
 }
 
