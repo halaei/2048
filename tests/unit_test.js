@@ -5,10 +5,7 @@ function UnitTest()
 
 UnitTest.prototype.mocks = [];
 
-// Export for CommonJS (Node.js)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = UnitTest;
-}
+module.exports = UnitTest;
 
 UnitTest.prototype.close = function()
 {

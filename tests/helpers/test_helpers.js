@@ -1,3 +1,5 @@
+const UnitTest = require('../unit_test.js');
+
 function TestHelpers()
 {
     this.testDescription = "Testing helpers";
@@ -55,5 +57,4 @@ TestHelpers.prototype.testRotateAlong111 = function()
     this.assertAlmostEqual(1, p2.z, 'z is computed wrong', [p1, p2]);
 }
 
-var test_helpers = new TestHelpers();
-test_helpers.run();
+module.exports = TestHelpers;

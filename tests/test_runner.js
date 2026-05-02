@@ -14,12 +14,13 @@ const path = require('path');
 const vm = require('vm');
 
 function loadGlobalScript(filePath) {
-    const content = fs.readFileSync(path.resolve(__dirname, filePath), 'utf8');
+    const realPath = path.resolve(__dirname, filePath);
+    const content = fs.readFileSync(realPath, 'utf8');
     // Execute in global scope to make functions globally available
-    vm.runInThisContext(content);
+    vm.runInThisContext(content, { filename: realPath });
 }
 
-// Load dependencies in order
+// Load dependencies in order (js/ files use vm.runInThisContext)
 loadGlobalScript('../js/helpers/misc.js');
 loadGlobalScript('../js/helpers/3d.js');
 loadGlobalScript('../js/logics/cell.js');
@@ -28,10 +29,10 @@ loadGlobalScript('../js/logics/events.js');
 loadGlobalScript('../js/logics/grid.js');
 loadGlobalScript('../js/logics/game.js');
 
-// Load test framework using eval as well
-loadGlobalScript('./unit_test.js');
-loadGlobalScript('./mock.js');
-loadGlobalScript('./expectation.js');
+// Load test framework using require (CommonJS modules)
+const UnitTest = require('./unit_test.js');
+const Mock = require('./mock.js');
+const Expectation = require('./expectation.js');
 
 // Initialize event prototypes for Node.js environment
 globalThis.initEventPrototypes();
@@ -70,15 +71,25 @@ UnitTest.prototype.fail = function(test, exception) {
     originalFail.call(this, test, exception);
 };
 
-// Load test files using the same approach to make them globally available
+// Load test files using require (CommonJS modules)
 console.log('📂 Loading test files...');
-loadGlobalScript('./test_mock.js');
-loadGlobalScript('./logics/test_grid_3.js');
-loadGlobalScript('./logics/test_grid.js');
-loadGlobalScript('./logics/test_events.js');
-loadGlobalScript('./logics/test_game.js');
-loadGlobalScript('./logics/test_callback.js');
-loadGlobalScript('./helpers/test_helpers.js');
+const TestMock = require('./test_mock.js');
+const TestGrid3 = require('./logics/test_grid_3.js');
+const TestGrid = require('./logics/test_grid.js');
+const TestEvents = require('./logics/test_events.js');
+const TestGame = require('./logics/test_game.js');
+const TestCallbacks = require('./logics/test_callback.js');
+const TestHelpers = require('./helpers/test_helpers.js');
+
+// Instantiate and run all test classes
+console.log('🚀 Running tests...\n');
+new TestMock().run();
+new TestGrid3().run();
+new TestGrid().run();
+new TestEvents().run();
+new TestGame().run();
+new TestCallbacks().run();
+new TestHelpers().run();
 
 // Final summary and exit code
 console.log('\n🏁 Test run completed!');

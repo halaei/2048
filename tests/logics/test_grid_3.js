@@ -1,3 +1,5 @@
+const UnitTest = require('../unit_test.js');
+
 function TestGrid3()
 {
     this.testDescription = "Testing grid of size 3";
@@ -18,5 +20,4 @@ TestGrid3.prototype.testIterateInAllDirections = function()
     }
 }
 
-var test_grid = new TestGrid3();
-test_grid.run();
+module.exports = TestGrid3;

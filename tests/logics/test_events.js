@@ -1,3 +1,5 @@
+const UnitTest = require('../unit_test.js');
+
 function TestEvents()
 {
     this.testDescription = "Testing Events";
@@ -50,5 +52,4 @@ TestEvents.prototype.testStepScore = function()
     this.assertTrue(event.score == 20, 'soring is wrong', [event, event.score]);
 }
 
-var test_events = new TestEvents();
-test_events.run();
+module.exports = TestEvents;

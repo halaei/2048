@@ -1,3 +1,6 @@
+const UnitTest = require('../unit_test.js');
+const TestGrid3 = require('./test_grid_3.js');
+
 function TestGrid()
 {
     this.testDescription = "Testing grid of size 4";
@@ -47,5 +50,4 @@ TestGrid.prototype.testNeighbors = function()
     }
 }
 
-var test_grid = new TestGrid();
-test_grid.run();
+module.exports = TestGrid;

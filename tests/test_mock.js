@@ -1,3 +1,6 @@
+const UnitTest = require('./unit_test.js');
+const Mock = require('./mock.js');
+
 function TestMock()
 {
     this.testDescription = "Testing Mock Itself";
@@ -25,5 +28,4 @@ TestMock.prototype.testArgumentsSatisfying = function()
     this.assertTrue('bar' == this.log.foo(1, [2, [3]]));
 };
 
-var test_mock = new TestMock();
-test_mock.run();
+module.exports = TestMock;

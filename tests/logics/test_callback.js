@@ -1,3 +1,5 @@
+const UnitTest = require('../unit_test.js');
+
 function TestCallbacks()
 {
     this.testDescription = "Testing Callbacks";
@@ -19,5 +21,4 @@ TestCallbacks.prototype.testCall = function()
     this.assertTrue(obj.name == callback.call(obj), 'callback call is worng');
 };
 
-var test_callback = new TestCallbacks();
-test_callback.run();
+module.exports = TestCallbacks;
