@@ -354,3 +354,64 @@ hr {
         padding: 6px 0;
     }
 }
+
+#game-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(173, 216, 230, 0.7); /* Light blue to match your theme */
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    animation: fade-in 800ms ease;
+    border-radius: 50%; /* Matches the circular board area */
+}
+
+#game-message p {
+    font-size: 60px;
+    font-weight: bold;
+    color: #55412a;
+    margin-bottom: 20px;
+}
+
+#game-message .lower {
+    display: flex;
+    gap: 20px;
+}
+
+#game-message a {
+    background: #8c6d46;
+    border-radius: 3px;
+    padding: 0 20px;
+    text-decoration: none;
+    color: #f9f6f2;
+    height: 40px;
+    line-height: 42px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Game Over specific style */
+#game-message.game-over {
+    background: rgba(119, 110, 101, 0.85); /* Darker, desaturated brown/gray */
+}
+
+#game-message.game-over p {
+    color: #f9f6f2; /* Light text to pop against the dark background */
+}
+
+#game-message.game-over a {
+    background: #4A90E2; /* A blue button to stand out as the "action" to take */
+}
+
+.hidden { display: none !important; }
+
+@keyframes fade-in {
+    0% { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+}
