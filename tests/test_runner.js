@@ -31,7 +31,10 @@ loadGlobalScript('../js/logics/game.js');
 loadGlobalScript('../js/storage/local_storage_manager.js');
 loadGlobalScript('../js/storage/status_log.js');
 loadGlobalScript('../js/controllers/keyboard_controller.js');
+loadGlobalScript('../js/views/2d_components.js');
+loadGlobalScript('../js/views/animation.js');
 loadGlobalScript('../js/views/scoreboard.js');
+loadGlobalScript('../js/views/canvas_view.js');
 
 // Load test framework using require (CommonJS modules)
 const UnitTest = require('./unit_test.js');
@@ -40,6 +43,25 @@ const Expectation = require('./expectation.js');
 
 // Initialize event prototypes for Node.js environment
 globalThis.initEventPrototypes();
+
+// Add requestAnimationFrame and cancelAnimationFrame polyfills for Node.js
+// For testing, make animations synchronous to avoid timing issues
+let virtualTime = Date.now();
+Date.prototype.getTime = function() {
+    virtualTime += 50; 
+    return virtualTime;
+};
+
+// Add requestAnimationFrame and cancelAnimationFrame polyfills for Node.js
+global.requestAnimationFrame = function(callback) {
+    // setImmediate pushes the render to the event loop, 
+    // allowing the game logic to finish instantly.
+    setImmediate(callback); 
+    return 1; 
+};
+global.cancelAnimationFrame = function(id) {
+    // No-op for testing
+};
 
 console.log('🚀 Running 2048 Game Tests...\n');
 
@@ -50,13 +72,13 @@ let totalSuites = 0;
 
 // Override UnitTest methods to track global results
 const originalRun = UnitTest.prototype.run;
-UnitTest.prototype.run = function() {
+UnitTest.prototype.run = async function() {
     totalSuites++;
     const suitePassed = this.passedCount || 0;
     const suiteFailed = this.failedCount || 0;
     
     // Call original run method
-    originalRun.call(this);
+    await originalRun.call(this);
     
     // Update global counters
     totalPassed += this.passedCount || 0;
@@ -88,24 +110,28 @@ const TestMicroGame = require('./integration/test_micro_game.js');
 
 // Instantiate and run all test classes
 console.log('🚀 Running tests...\n');
-new TestMock().run();
-new TestGrid3().run();
-new TestGrid().run();
-new TestEvents().run();
-new TestGame().run();
-new TestCallbacks().run();
-new TestHelpers().run();
-new TestMicroGame().run();
-
-// Final summary and exit code
-console.log('\n🏁 Test run completed!');
-console.log(`📊 Final Results: ${totalPassed} passed, ${totalFailed} failed across ${totalSuites} test suites`);
-
-// Exit with appropriate code (0 for success, 1 for failure)
-if (totalFailed > 0) {
-    console.log('❌ Some tests failed!');
-    process.exit(1);
-} else {
-    console.log('✅ All tests passed!');
-    process.exit(0);
+async function runAll() {
+    await new TestMock().run();
+    await new TestGrid3().run();
+    await new TestGrid().run();
+    await new TestEvents().run();
+    await new TestGame().run();
+    await new TestCallbacks().run();
+    await new TestHelpers().run();
+    await new TestMicroGame().run();
 }
+
+runAll().finally(() => {
+    // Final summary and exit code
+    console.log('\n🏁 Test run completed!');
+    console.log(`📊 Final Results: ${totalPassed} passed, ${totalFailed} failed across ${totalSuites} test suites`);
+    
+    // Exit with appropriate code (0 for success, 1 for failure)
+    if (totalFailed > 0) {
+        console.log('❌ Some tests failed!');
+        process.exit(1);
+    } else {
+        console.log('✅ All tests passed!');
+        process.exit(0);
+    }
+});

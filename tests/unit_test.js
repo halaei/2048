@@ -54,7 +54,7 @@ UnitTest.prototype.assertAlmostEqual = function(expected, actual, message, data)
 
 
 
-UnitTest.prototype.run = function()
+UnitTest.prototype.run = async function()
 {
     console.log("\n🧪 " + this.testDescription);
     var empty = true;
@@ -68,9 +68,9 @@ UnitTest.prototype.run = function()
             empty = false;
             try
             {
-                this.setUp();
-                this[test]();
-                this.tearDown();
+                await this.setUp();
+                await this[test]();
+                await this.tearDown();
                 this.pass(test);
                 passedCount++;
             }

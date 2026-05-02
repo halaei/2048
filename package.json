@@ -26,5 +26,8 @@
       "html"
     ],
     "all": true
+  },
+  "dependencies": {
+    "canvas": "^3.2.3"
   }
 }

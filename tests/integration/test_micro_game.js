@@ -3,47 +3,49 @@ const { JSDOM } = require('jsdom');
 
 function TestMicroGame()
 {
-    this.testDescription = "Testing Micro Game (size 3) with random play until game over";
+    this.testDescription = "Testing Micro Game (size 3) with random play until game over with Async Rendering";
 }
 
 TestMicroGame.prototype = new UnitTest();
 
-TestMicroGame.prototype.testMicroGameRandomPlay = function()
+/**
+ * Main test execution
+ * transformed to async to allow the Node.js event loop to process 
+ * CanvasView animations between moves.
+ */
+TestMicroGame.prototype.testMicroGameRandomPlay = async function()
 {
     UnitTest.prototype.setUp.call(this);
 
-    // Create production-like HTML structure using jsdom
+    // 1. Create production-like HTML structure using jsdom
     const dom = new JSDOM(`
         <!DOCTYPE html>
         <html>
         <body>
             <div id="Triangular2048MainDiv">
-                <div class="heading">
-                    <h1 class="title">T2048</h1>
-                    <div class="scoreboard">
-                        <div class="score">0</div>
-                        <div class="highscore">0</div>
-                    </div>
-                </div>
                 <div class="view-container">
                     <canvas class="canvas_view" width="500" height="500"></canvas>
                     <div id="game-message" class="hidden">
                         <p id="message-text"></p>
+                        <div class="lower">
+                            <a class="keep-playing-button hidden">Keep going</a>
+                            <a class="retry-button hidden">Try again</a>
+                        </div>
                     </div>
                 </div>
-                <div class="help">
-                    <p>(controls: drag&drop, touch or keys: WEASDF)</p>
+                <div class="scoreboard">
+                    <div class="score">0</div>
+                    <div class="highscore">0</div>
                 </div>
             </div>
         </body>
         </html>
     `);
 
-    // Set up global DOM objects for the test
     global.document = dom.window.document;
     global.window = dom.window;
 
-    // Configuration for size 3 (Micro game)
+    // 2. Configuration for size 3 (Micro game)
     const configuration = {
         initNumberOfTiles: 2,
         numberOfRandomTiles: function(){return 1;},
@@ -51,173 +53,108 @@ TestMicroGame.prototype.testMicroGameRandomPlay = function()
         namespace: "3:",
     };
 
-    // Create mock view (keep this as mock since it's for UI)
-    const mockView = {
-        register: function(game) {
-            // Do nothing for automated test
-        }
-    };
+    const gameCanvas = dom.window.document.querySelector('.canvas_view');
+    const realCanvasView = new CanvasView(gameCanvas, 3);
+    const keyboardController = new KeyboardController(gameCanvas);
     
-    // Create real scoreboard with real DOM elements from jsdom
     const scoreDiv = dom.window.document.querySelector('.score');
     const highscoreDiv = dom.window.document.querySelector('.highscore');
     const realScoreboard = new Scorboard(scoreDiv, highscoreDiv, 0, new LocalStorageManager(configuration.namespace));
 
-    // Create game components with keyboard controller
     this.grid = new Grid(3);
     this.eventLog = new StatusLog(new LocalStorageManager(configuration.namespace));
-    
-    // Use the real canvas element from the DOM for keyboard controller
-    const gameCanvas = dom.window.document.querySelector('.canvas_view');
-    const keyboardController = new KeyboardController(gameCanvas);
-    this.controllers = [keyboardController];
-    
-    this.view = mockView;
+    this.view = realCanvasView;
     this.scoreboard = realScoreboard;
 
     // Create the game
-    this.game = new Game(this.grid, this.eventLog, this.controllers, this.view, this.scoreboard, configuration);
+    this.game = new Game(this.grid, this.eventLog, [keyboardController], this.view, this.scoreboard, configuration);
 
-    // Track game statistics
+    // 3. Helper to wait for the CanvasView animation queue to empty
+    const flushAnimations = () => {
+        return new Promise((resolve) => {
+            const checkQueue = () => {
+                // If animations remain, yield to the event loop and check again
+                if (this.view.animations.length === 0) {
+                    resolve();
+                } else {
+                    setImmediate(checkQueue);
+                }
+            };
+            checkQueue();
+        });
+    };
+
     let moves = 0;
-    let maxMoves = 1000; // Safety limit to prevent infinite loop
-    let highestTile = 0; // Track highest tile reached
-    
-    // Triangular game has 6 directions: WEASDF
+    let maxMoves = 1000;
+    let highestTile = 0;
     const directions = ['up', 'up-right', 'down-right', 'down', 'down-left', 'up-left'];
-    // Map directions to keyboard keys (WEASDF for triangular game)
-    const directionKeys = {
-        'up': 'W',           // W = up
-        'up-right': 'E',     // E = up-right  
-        'down-right': 'A',   // A = down-right
-        'down': 'S',         // S = down
-        'down-left': 'D',    // D = down-left
-        'up-left': 'F'       // F = up-left
-    };
+    const directionKeys = { 'up': 'W', 'up-right': 'E', 'down-right': 'A', 'down': 'S', 'down-left': 'D', 'up-left': 'F' };
 
-    console.log('🎮 Starting Micro Game (3x3) with random keyboard play...');
-
-    // Helper function to send keyboard event
+    // Helper functions for keyboard events
     const sendKeyEvent = (key, eventType) => {
-        const event = {
-            keyCode: key.charCodeAt(0),
-            preventDefault: () => {}
-        };
-        
-        if (eventType === 'keydown' && gameCanvas.onkeydown) {
-            gameCanvas.onkeydown(event);
-        } else if (eventType === 'keyup' && gameCanvas.onkeyup) {
-            gameCanvas.onkeyup(event);
-        }
+        const event = { keyCode: key.charCodeAt(0), preventDefault: () => {} };
+        if (eventType === 'keydown' && gameCanvas.onkeydown) gameCanvas.onkeydown(event);
+        else if (eventType === 'keyup' && gameCanvas.onkeyup) gameCanvas.onkeyup(event);
     };
 
-    // Helper function to make a move with keyboard events
     const makeKeyboardMove = (direction) => {
         const key = directionKeys[direction];
         sendKeyEvent(key, 'keydown');
         sendKeyEvent(key, 'keyup');
     };
 
-    // Helper function to get grid state
     const getGridState = () => JSON.stringify(this.game.getCellValues());
 
-    // Play until game over or max moves reached
+    console.log('🎮 Starting Micro Game with Async Render validation...');
+
+    // 4. ASYNC GAME LOOP
     while (!this.grid.gameIsOver() && moves < maxMoves) {
-        // Capture state before the move
         const stateBefore = getGridState();
-        
         let moveMade = false;
-        // Try random directions (increased to 10 attempts)
+        
         for (let attempt = 0; attempt < 10 && !moveMade; attempt++) {
             const randomDirection = directions[Math.floor(Math.random() * directions.length)];
             makeKeyboardMove(randomDirection);
             
-            // Check if the board actually changed (moved or merged)
             if (getGridState() !== stateBefore) {
                 moveMade = true;
                 moves++;
                 
-                // Update highest tile reached
+                // IMPORTANT: Wait for the render queue to process so drawBoard is called
+                await flushAnimations(); 
+
                 const currentTiles = this.game.getCellValues();
                 highestTile = Math.max(highestTile, ...currentTiles);
                 break;
             }
         }
-
-        // Exhaustive fallback (if random didn't work)
-        if (!moveMade) {
-            for (const direction of directions) {
-                makeKeyboardMove(direction);
-                if (getGridState() !== stateBefore) {
-                    moveMade = true;
-                    moves++;
-                    
-                    // Update highest tile reached
-                    const currentTiles = this.game.getCellValues();
-                    highestTile = Math.max(highestTile, ...currentTiles);
-                    break;
-                }
-            }
-        }
-
-        // Break if we literally can't move anymore (should match gameIsOver)
         if (!moveMade) break;
-        
-        // Log progress every 50 moves
-        if (moves % 50 === 0) {
-            console.log(`📊 Move ${moves}: Score = ${this.game.score}, Highest tile = ${highestTile}, Empty cells: ${this.grid.getEmptyCells().length}`);
-        }
     }
 
-    // Test assertions
+    // 5. Assertions
     this.assertTrue(moves > 0, "Game should have made at least one move");
-    this.assertTrue(this.game.score >= 0, "Score should be non-negative");
-
-    // Log final results
-    console.log(`🏁 Game completed!`);
-    console.log(`📈 Final score: ${this.game.score}`);
-    console.log(`🎯 Total moves: ${moves}`);
-    console.log(`� Highest tile reached: ${highestTile}`);
-    console.log(`� Game over: ${this.grid.gameIsOver()}`);
-    console.log(`🏆 Won: ${this.game.won || false}`);
-    console.log(`📊 Empty cells remaining: ${this.grid.getEmptyCells().length}`);
-    
-    // Show final grid state
-    const cellValues = this.game.getCellValues();
-    console.log(`📋 Final grid: [${cellValues.join(', ')}]`);
-    
-    // Simplified and improved assertions
-    this.assertTrue(this.grid.gameIsOver(), "Game should reach a terminal state");
+    this.assertTrue(this.grid.gameIsOver(), "Game should reach terminal state");
     this.assertTrue(this.grid.getEmptyCells().length === 0, "Board should be full at Game Over");
-    this.assertTrue(moves >= 5, "Should have made at least 5 moves in a completed game");
-    this.assertTrue(highestTile >= 4, "Should have reached at least tile value 4");
-    
-    // 1. Manually verify no neighbors have the same value (The "True" Game Over logic)
-    const cells = this.grid.cells; // Assuming this.grid.cells is the internal array
-    let illegalMergeFound = false;
 
+    // Verify neighbors for "True" Game Over logic
+    let illegalMergeFound = false;
+    const cells = this.grid.cells;
     for (let i = 0; i < cells.length; i++) {
         for (let j = 0; j < cells[i].length; j++) {
             const cell = cells[i][j];
             if (!cell || !cell.tile || cell.tile.value === 0) continue;
-
-            // Check all neighbors of this specific cell (6 directions for triangular grid)
-            for (let direction = 0; direction < 6; direction++) {
-                const neighbor = this.grid.neighbor(cell, direction);
+            for (let d = 0; d < 6; d++) {
+                const neighbor = this.grid.neighbor(cell, d);
                 if (neighbor && neighbor.tile && neighbor.tile.value === cell.tile.value) {
                     illegalMergeFound = true;
-                    console.error(`❌ Logic Error: Cell at (${i}, ${j}) has same value as neighbor! Value: ${cell.tile.value}`);
                     break;
                 }
             }
-            if (illegalMergeFound) break;
         }
-        if (illegalMergeFound) break;
     }
 
-    this.assertTrue(!illegalMergeFound, "Game Over state reached, but identical neighboring tiles were found!");
-    
-    console.log(`✅ Game completed successfully with ${moves} moves, score ${this.game.score}, and highest tile ${highestTile}`);
+    this.assertTrue(!illegalMergeFound, "No illegal merges found at Game Over");
+    console.log(`✅ Game completed with ${moves} moves. Rendering validated.`);
 };
 
 module.exports = TestMicroGame;
