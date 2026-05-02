@@ -28,6 +28,9 @@ loadGlobalScript('../js/logics/tile.js');
 loadGlobalScript('../js/logics/events.js');
 loadGlobalScript('../js/logics/grid.js');
 loadGlobalScript('../js/logics/game.js');
+loadGlobalScript('../js/storage/local_storage_manager.js');
+loadGlobalScript('../js/storage/status_log.js');
+loadGlobalScript('../js/controllers/keyboard_controller.js');
 
 // Load test framework using require (CommonJS modules)
 const UnitTest = require('./unit_test.js');
@@ -80,6 +83,7 @@ const TestEvents = require('./logics/test_events.js');
 const TestGame = require('./logics/test_game.js');
 const TestCallbacks = require('./logics/test_callback.js');
 const TestHelpers = require('./helpers/test_helpers.js');
+const TestMicroGame = require('./integration/test_micro_game.js');
 
 // Instantiate and run all test classes
 console.log('🚀 Running tests...\n');
@@ -90,6 +94,7 @@ new TestEvents().run();
 new TestGame().run();
 new TestCallbacks().run();
 new TestHelpers().run();
+new TestMicroGame().run();
 
 // Final summary and exit code
 console.log('\n🏁 Test run completed!');
