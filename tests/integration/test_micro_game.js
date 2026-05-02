@@ -1,4 +1,5 @@
 const UnitTest = require('../unit_test.js');
+const { JSDOM } = require('jsdom');
 
 function TestMicroGame()
 {
@@ -11,6 +12,37 @@ TestMicroGame.prototype.testMicroGameRandomPlay = function()
 {
     UnitTest.prototype.setUp.call(this);
 
+    // Create production-like HTML structure using jsdom
+    const dom = new JSDOM(`
+        <!DOCTYPE html>
+        <html>
+        <body>
+            <div id="Triangular2048MainDiv">
+                <div class="heading">
+                    <h1 class="title">T2048</h1>
+                    <div class="scoreboard">
+                        <div class="score">0</div>
+                        <div class="highscore">0</div>
+                    </div>
+                </div>
+                <div class="view-container">
+                    <canvas class="canvas_view" width="500" height="500"></canvas>
+                    <div id="game-message" class="hidden">
+                        <p id="message-text"></p>
+                    </div>
+                </div>
+                <div class="help">
+                    <p>(controls: drag&drop, touch or keys: WEASDF)</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+
+    // Set up global DOM objects for the test
+    global.document = dom.window.document;
+    global.window = dom.window;
+
     // Configuration for size 3 (Micro game)
     const configuration = {
         initNumberOfTiles: 2,
@@ -19,35 +51,29 @@ TestMicroGame.prototype.testMicroGameRandomPlay = function()
         namespace: "3:",
     };
 
-    // Create mock observers that have the required register method
+    // Create mock view (keep this as mock since it's for UI)
     const mockView = {
         register: function(game) {
             // Do nothing for automated test
         }
     };
     
-    const mockScoreboard = {
-        register: function(game) {
-            // Do nothing for automated test
-        }
-    };
+    // Create real scoreboard with real DOM elements from jsdom
+    const scoreDiv = dom.window.document.querySelector('.score');
+    const highscoreDiv = dom.window.document.querySelector('.highscore');
+    const realScoreboard = new Scorboard(scoreDiv, highscoreDiv, 0, new LocalStorageManager(configuration.namespace));
 
     // Create game components with keyboard controller
     this.grid = new Grid(3);
     this.eventLog = new StatusLog(new LocalStorageManager(configuration.namespace));
     
-    // Create a mock game div for keyboard controller
-    const mockGameDiv = {
-        onkeydown: null,
-        onkeyup: null
-    };
-    
-    // Create keyboard controller
-    const keyboardController = new KeyboardController(mockGameDiv);
+    // Use the real canvas element from the DOM for keyboard controller
+    const gameCanvas = dom.window.document.querySelector('.canvas_view');
+    const keyboardController = new KeyboardController(gameCanvas);
     this.controllers = [keyboardController];
     
     this.view = mockView;
-    this.scoreboard = mockScoreboard;
+    this.scoreboard = realScoreboard;
 
     // Create the game
     this.game = new Game(this.grid, this.eventLog, this.controllers, this.view, this.scoreboard, configuration);
@@ -78,10 +104,10 @@ TestMicroGame.prototype.testMicroGameRandomPlay = function()
             preventDefault: () => {}
         };
         
-        if (eventType === 'keydown' && mockGameDiv.onkeydown) {
-            mockGameDiv.onkeydown(event);
-        } else if (eventType === 'keyup' && mockGameDiv.onkeyup) {
-            mockGameDiv.onkeyup(event);
+        if (eventType === 'keydown' && gameCanvas.onkeydown) {
+            gameCanvas.onkeydown(event);
+        } else if (eventType === 'keyup' && gameCanvas.onkeyup) {
+            gameCanvas.onkeyup(event);
         }
     };
 

@@ -31,6 +31,7 @@ loadGlobalScript('../js/logics/game.js');
 loadGlobalScript('../js/storage/local_storage_manager.js');
 loadGlobalScript('../js/storage/status_log.js');
 loadGlobalScript('../js/controllers/keyboard_controller.js');
+loadGlobalScript('../js/views/scoreboard.js');
 
 // Load test framework using require (CommonJS modules)
 const UnitTest = require('./unit_test.js');
