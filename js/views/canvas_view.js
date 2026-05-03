@@ -1,44 +1,60 @@
 function CanvasView(canvas, gridSize) {
-    //set canvas
     this.canvas = canvas;
     this.context = canvas.getContext("2d");
 
-    // --- DPI FIX START ---
-    var logicalWidth = parseInt(canvas.getAttribute("width") || 500, 10);
-    var logicalHeight = parseInt(canvas.getAttribute("height") || 500, 10);
-    var dpr = globalThis.devicePixelRatio || 1;
+    // 1. CAPTURE & LOCK DIMENSIONS
+    this.logicalWidth = parseInt(canvas.getAttribute("width") || 500, 10);
+    this.logicalHeight = parseInt(canvas.getAttribute("height") || 500, 10);
+    this.dpr = globalThis.devicePixelRatio || 1;
 
-    // Scale canvas buffer size physically
-    this.canvas.width = logicalWidth * dpr;
-    this.canvas.height = logicalHeight * dpr;
-    
-    // Normalize coordinate system so drawing logic remains unchanged
-    this.context.scale(dpr, dpr);
-    // --- DPI FIX END ---
+    // 2. INITIALIZE BUFFER
+    this.canvas.width = this.logicalWidth * this.dpr;
+    this.canvas.height = this.logicalHeight * this.dpr;
+    this.context.scale(this.dpr, this.dpr);
 
-    //set grid size
     this.gridSize = gridSize;
     this.initGrid();
-
-    //set geometry (Fixed: Use logical dimensions rather than actual scaled buffer widths)
-    this.center = { x: logicalWidth / 2, y: logicalHeight / 2 };
+    this.center = { x: this.logicalWidth / 2, y: this.logicalHeight / 2 };
     this.radius = this.center.x - 6;
-
     this.fps = 30;
 
-    this.makeBoard();
+    // 3. CACHE THE BOARD (using fixed dpr)
+    this.boardCache = document.createElement('canvas');
+    this.boardCache.width = this.canvas.width;
+    this.boardCache.height = this.canvas.height;
+    this.renderBoardToCache();
 
-    //set state of the game
     this.game_over = false;
-    this.pendingGameOverMessage = false;
-    this.hasWon = false;
-    this.pendingWinMessage = false;
     this.animations = [];
-
-    //is set to merge hint animation with the next step event
-    this.merge_hint = false;
-    this.debug = false;
 }
+
+CanvasView.prototype.renderBoardToCache = function () {
+    var tempCtx = this.boardCache.getContext('2d');
+    tempCtx.scale(this.dpr, this.dpr); // Use locked dpr
+    
+    this.makeBoard(); 
+    // Draw the main board background
+    drawPolygon(tempCtx, this.polygons[0].vertex_list, '#bbada0', '#ffffff');
+
+    for (var i = 1; i < this.polygons.length; i++) {
+        var points = this.polygons[i].vertex_list;
+        drawPolygon(tempCtx, points, '#ffffff', '#ffffff');
+        tempCtx.strokeStyle = '#e0adad';
+        tempCtx.lineWidth = 2;
+        tempCtx.stroke();
+    }
+};
+
+CanvasView.prototype.draw = function () {
+    // Clear using logical dimensions (the scale(dpr) handles the rest)
+    this.context.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
+    
+    // Draw the cached board
+    // Since the context is scaled by dpr, drawing at logical size fills the buffer
+    this.context.drawImage(this.boardCache, 0, 0, this.logicalWidth, this.logicalHeight);
+    
+    this.drawTiles();
+};
 
 CanvasView.prototype.makeBoard = function () {
     this.polygons = [];
@@ -69,239 +85,132 @@ CanvasView.prototype.makeBoard = function () {
     }
 };
 
-CanvasView.prototype.drawBoard = function () {
-    var ctx = this.context;
-
-    // Draw the main board background
-    drawPolygon(ctx, this.polygons[0].vertex_list, '#bbada0', '#ffffff');
-
-    for (var i = 1; i < this.polygons.length; i++) {
-        var points = this.polygons[i].vertex_list;
-
-        // Draw the "Cell Slot" (the recessed area)
-        drawPolygon(ctx, points, '#ffffff', '#ffffff');
-
-        // Draw the "Half-Cylinder Rail" effect on the edges
-        ctx.strokeStyle = '#e0adad';
-        ctx.lineWidth = 2;
-        ctx.lineJoin = "round";
-        ctx.stroke();
-
-        // Add a tiny highlight to the crest of the rail
-        // ctx.strokeStyle = '#d6cdc4';
-        // ctx.lineWidth = 1;
-        // ctx.stroke();
-    }
-};
-
 CanvasView.prototype.drawTiles = function () {
     var self = this;
     var polygon = this.polygons[0].vertex_list;
-
-    // Helper functions for rotation and centers
-    function axisOfRotation(grid_location, direction) {
-        var d;
-        var p;
-        switch (direction) {
-            case 0:
-                d = new TD_Point(1, 0, 0);
-                p = interpolateLocation(polygon[0], polygon[1], self.gridSize - grid_location.row, grid_location.row);
-                break;
-            case 1:
-                d = new TD_Point(Math.cos(Math.PI / 3), Math.sin(Math.PI / 3), 0);
-                p = interpolateLocation(polygon[1], polygon[2], self.gridSize - (grid_location.row - grid_location.rank / 2), (grid_location.row - grid_location.rank / 2));
-                break;
-            case 2:
-                d = new TD_Point(- Math.cos(Math.PI / 3), Math.sin(Math.PI / 3), 0);
-                p = interpolateLocation(polygon[0], polygon[1], self.gridSize - (grid_location.rank + 1) / 2, (grid_location.rank + 1) / 2);
-                break;
-            case 3:
-                d = new TD_Point(-1, 0, 0);
-                p = interpolateLocation(polygon[0], polygon[1], self.gridSize - (grid_location.row + 1), grid_location.row + 1);
-                break;
-            case 4:
-                d = new TD_Point(- Math.cos(Math.PI / 3), - Math.sin(Math.PI / 3), 0);
-                p = interpolateLocation(polygon[1], polygon[2], self.gridSize - (grid_location.row - (grid_location.rank - 1) / 2), (grid_location.row - (grid_location.rank - 1) / 2));
-                break;
-            case 5:
-                d = new TD_Point(Math.cos(Math.PI / 3), - Math.sin(Math.PI / 3), 0);
-                p = interpolateLocation(polygon[0], polygon[1], self.gridSize - (grid_location.rank) / 2, (grid_location.rank) / 2);
-                break;
-        }
-        p = new TD_Point(p.x, p.y, 0);
-        return new TD_Line(p, d);
-    }
-
-    var stripes = partitionToStripes(this.polygons[0].vertex_list, this.gridSize);
+    var stripes = partitionToStripes(polygon, this.gridSize);
     var size = (stripes[1][1].x - stripes[0][1].x);
     var radius = size / Math.sqrt(3);
 
+    // --- 1. HELPERS (Moved outside loops for speed) ---
     function getCellCenter(row, rank) {
-        if (row < 0 || row >= self.gridSize || rank < 0 || rank >= 2 * row + 1) {
-            return null;
-        }
         return {
             x: stripes[0][row].x + rank * size / 2,
             y: [stripes[0][row].y + radius, stripes[0][row + 1].y - radius][rank % 2]
         };
     }
 
+    function axisOfRotation(grid_location, direction) {
+        var d, p;
+        switch (direction) {
+            case 0: d = new TD_Point(1, 0, 0); p = interpolateLocation(polygon[0], polygon[1], self.gridSize - grid_location.row, grid_location.row); break;
+            case 1: d = new TD_Point(Math.cos(Math.PI / 3), Math.sin(Math.PI / 3), 0); p = interpolateLocation(polygon[1], polygon[2], self.gridSize - (grid_location.row - grid_location.rank / 2), (grid_location.row - grid_location.rank / 2)); break;
+            case 2: d = new TD_Point(- Math.cos(Math.PI / 3), Math.sin(Math.PI / 3), 0); p = interpolateLocation(polygon[0], polygon[1], self.gridSize - (grid_location.rank + 1) / 2, (grid_location.rank + 1) / 2); break;
+            case 3: d = new TD_Point(-1, 0, 0); p = interpolateLocation(polygon[0], polygon[1], self.gridSize - (grid_location.row + 1), grid_location.row + 1); break;
+            case 4: d = new TD_Point(- Math.cos(Math.PI / 3), - Math.sin(Math.PI / 3), 0); p = interpolateLocation(polygon[1], polygon[2], self.gridSize - (grid_location.row - (grid_location.rank - 1) / 2), (grid_location.row - (grid_location.rank - 1) / 2)); break;
+            case 5: d = new TD_Point(Math.cos(Math.PI / 3), - Math.sin(Math.PI / 3), 0); p = interpolateLocation(polygon[0], polygon[1], self.gridSize - (grid_location.rank) / 2, (grid_location.rank) / 2); break;
+        }
+        return new TD_Line(new TD_Point(p.x, p.y, 0), d);
+    }
+
     function getNextLocation(location, direction) {
         if (location.rank % 2) {
             switch (direction) {
-                case 0:
-                case 5:
-                    return { row: location.row - 1, rank: location.rank - 1 };
-                case 1:
-                case 2:
-                    return { row: location.row, rank: location.rank + 1 };
-                case 3:
-                case 4:
-                    return { row: location.row, rank: location.rank - 1 };
+                case 0: case 5: return { row: location.row - 1, rank: location.rank - 1 };
+                case 1: case 2: return { row: location.row, rank: location.rank + 1 };
+                case 3: case 4: return { row: location.row, rank: location.rank - 1 };
             }
         } else {
             switch (direction) {
-                case 0:
-                case 1:
-                    return { row: location.row, rank: location.rank + 1 };
-                case 2:
-                case 3:
-                    return { row: location.row + 1, rank: location.rank + 1 };
-                case 4:
-                case 5:
-                    return { row: location.row, rank: location.rank - 1 };
+                case 0: case 1: return { row: location.row, rank: location.rank + 1 };
+                case 2: case 3: return { row: location.row + 1, rank: location.rank + 1 };
+                case 4: case 5: return { row: location.row, rank: location.rank - 1 };
             }
         }
         return null;
     }
 
+    // --- 2. MAIN DRAW LOOP ---
     for (var anglie_filter = 0; anglie_filter < 2; anglie_filter++) {
         for (var i = 0; i < this.gridSize; i++) {
-            var n = 2 * i + 1;
-            var x = stripes[0][i].x;
-            var y = [
-                stripes[0][i].y + radius,
-                stripes[0][i + 1].y - radius
-            ];
-            for (var j = 0; j < n; j++) {
-                if (this.grid[i][j].value) {
-                    if ((anglie_filter && this.grid[i][j].angle > Math.PI / 2) ||
-                        (!anglie_filter && this.grid[i][j].angle <= Math.PI / 2)) {
-                        var tile_style = new TileStyle(
-                            this.grid[i][j].value,
-                            1
-                        );
+            for (var j = 0; j < (2 * i + 1); j++) {
+                var tile = this.grid[i][j];
+                if (!tile.value) continue;
 
-                        var triangle = makeRegularPolygon(3, radius * .85, x, y[j % 2], j % 2 ? Math.PI / 2 : - Math.PI / 2);
-                        var flat_triangle = [
-                            { x: triangle[0].x, y: triangle[0].y },
-                            { x: triangle[1].x, y: triangle[1].y },
-                            { x: triangle[2].x, y: triangle[2].y }
-                        ];
-                        var center = { x: x, y: y[j % 2] };
-                        var textCenter = { x: center.x, y: center.y };
-                        var textMatrix = [1, 0, 0, 1, 0, 0];
+                // Pass 0: Flat or rising tiles. Pass 1: Tiles falling into new slots.
+                if ((anglie_filter && tile.angle > Math.PI / 2) || (!anglie_filter && tile.angle <= Math.PI / 2)) {
+                    var center = getCellCenter(i, j);
+                    var tile_style = new TileStyle(tile.value, 1);
+                    var triangle = makeRegularPolygon(3, radius * .85, center.x, center.y, j % 2 ? Math.PI / 2 : - Math.PI / 2);
+                    
+                    var textMatrix = [1, 0, 0, 1, 0, 0];
+                    var lightShiftX = 0, lightShiftY = -radius * 0.1;
+                    var drawX = center.x, drawY = center.y;
+                    var textPos = { x: center.x, y: center.y }; // Default text position
 
-                        if (this.grid[i][j].angle && this.grid[i][j].move_direction !== null) {
-                            var axis = axisOfRotation(new GridLocation(i, j), this.grid[i][j].move_direction);
-                            triangle = rotatePolygon2D(triangle, axis.point, axis.direction, this.grid[i][j].angle);
-                            textMatrix = getRotationTransform2D(axis.point, axis.direction, this.grid[i][j].angle, true);
-
-                            if (this.grid[i][j].angle > Math.PI / 2) {
-                                var nextLoc = getNextLocation(new GridLocation(i, j), this.grid[i][j].move_direction);
-                                var nextCenter = nextLoc ? getCellCenter(nextLoc.row, nextLoc.rank) : null;
-                                if (nextCenter) textCenter = nextCenter;
-                            }
-                        }
-
-                        // 1. CALCULATE DYNAMIC LIGHTING
-                        var centerX = (triangle[0].x + triangle[1].x + triangle[2].x) / 3;
-                        var centerY = (triangle[0].y + triangle[1].y + triangle[2].y) / 3;
-
-                        var lightShiftX = 0;
-                        var lightShiftY = -radius * 0.1; // Default slight top-down light
-
-                        if (this.grid[i][j].angle && this.grid[i][j].move_direction !== null) {
-                            // Find the "Raised Tip" geometrically.
-                            // The two vertices on the hinge hardly move. The tip moves the most.                            var tipIndex = 0;
-                            var maxDistSq = -1;
-                            for (var k = 0; k < 3; k++) {
-                                var dx = triangle[k].x - flat_triangle[k].x;
-                                var dy = triangle[k].y - flat_triangle[k].y;
-                                var distSq = dx * dx + dy * dy;
-                                if (distSq > maxDistSq) {
-                                    maxDistSq = distSq;
-                                    tipIndex = k;
-                                }
-                            }
-                            var tipX = triangle[tipIndex].x;
-                            var tipY = triangle[tipIndex].y;
-                            var vecX = tipX - centerX;
-                            var vecY = tipY - centerY;
-                            var tiltIntensity = Math.sin(this.grid[i][j].angle);
-                            lightShiftX = vecX * tiltIntensity * 0.85;
-                            lightShiftY = vecY * tiltIntensity * 0.85;
-                        }
-
-                        // 2. GRADIENT & SHADOW PREP
-                        var tiltIntensity = Math.sin(this.grid[i][j].angle);
-                        var shadowOpacity = tiltIntensity * 0.4;
-
-                        var grad = this.context.createRadialGradient(
-                            centerX + lightShiftX, centerY + lightShiftY, radius * 0.05,
-                            centerX, centerY, radius
-                        );
-
-                        if (this.debug) {
-                            grad.addColorStop(0, '#ff0000');
-                            grad.addColorStop(0.4, tile_style.colors.light);
-                            grad.addColorStop(1, tile_style.colors.base);
-                        } else {
-                            grad.addColorStop(0, tile_style.colors.light);
-                            grad.addColorStop(0.7, tile_style.colors.base);
-                            grad.addColorStop(1, "rgba(0,0,0," + shadowOpacity + ")");
-                        }
-// START SHADOW CONTEXT
-                        this.context.save(); 
-
-                        // 1. Shadow logic (only apply if tilted)
-                        if (this.grid[i][j].angle > 0) {
-                            this.context.shadowColor = "rgba(0, 0, 0, " + (tiltIntensity * 0.4) + ")";
-                            this.context.shadowBlur = radius * 0.25 * tiltIntensity;
-                            this.context.shadowOffsetX = lightShiftX * 0.2;
-                            this.context.shadowOffsetY = lightShiftY * 0.2;
-                        }
-
-                        // 2. DRAW THE TILE FACE (Background)
-                        this.context.fillStyle = grad;
-                        this.context.beginPath();
-                        this.context.moveTo(triangle[0].x, triangle[0].y);
-                        for (var k = 1; k < triangle.length; k++) {
-                            this.context.lineTo(triangle[k].x, triangle[k].y);
-                        }
-                        this.context.closePath();
-                        this.context.fill();
-
-                        // 3. DRAW THE BORDER (Jewel Edge)
-                        this.context.lineJoin = "round";
+                    // 3D Geometry calculations
+                    if (tile.angle > 0.01 && tile.move_direction !== null) {
+                        var axis = axisOfRotation(new GridLocation(i, j), tile.move_direction);
+                        var flat_triangle = JSON.parse(JSON.stringify(triangle));
                         
-                        // Dark Bevel (Inside)
-                        this.context.strokeStyle = "rgba(0, 0, 0, 0.15)";
-                        this.context.lineWidth = 4;
-                        this.context.stroke();
+                        triangle = rotatePolygon2D(triangle, axis.point, axis.direction, tile.angle);
+                        textMatrix = getRotationTransform2D(axis.point, axis.direction, tile.angle, true);
 
-                        // Highlight (Outer Rim)
-                        this.context.strokeStyle = "rgba(255, 255, 255, 0.7)";
-                        this.context.lineWidth = 1.5;
-                        this.context.stroke();
+                        // If flipped past 90 degrees, calculate the center of the next slot
+                        if (tile.angle > Math.PI / 2) {
+                            var nextLoc = getNextLocation(new GridLocation(i, j), tile.move_direction);
+                            var nextCenter = nextLoc ? getCellCenter(nextLoc.row, nextLoc.rank) : null;
+                            if (nextCenter) textPos = nextCenter;
+                        }
 
-                        // 4. RESTORE BEFORE TEXT (prevents blurry numbers)
-                        this.context.restore();
-                        // 3. DRAW THE TEXT
-                        drawTextTransformed(this.context, this.grid[i][j].value, textCenter.x, textCenter.y, tile_style.font, tile_style.font_style, textMatrix);
+                        // Lighting "Center" (Physical center of the rotated face)
+                        drawX = (triangle[0].x + triangle[1].x + triangle[2].x) / 3;
+                        drawY = (triangle[0].y + triangle[1].y + triangle[2].y) / 3;
+                        
+                        var tipIndex = 0, maxDistSq = -1;
+                        for (var k = 0; k < 3; k++) {
+                            var dx = triangle[k].x - flat_triangle[k].x, dy = triangle[k].y - flat_triangle[k].y;
+                            var distSq = dx * dx + dy * dy;
+                            if (distSq > maxDistSq) { maxDistSq = distSq; tipIndex = k; }
+                        }
+                        var tiltIntensity = Math.sin(tile.angle);
+                        lightShiftX = (triangle[tipIndex].x - drawX) * tiltIntensity * 0.85;
+                        lightShiftY = (triangle[tipIndex].y - drawY) * tiltIntensity * 0.85;
                     }
+
+                    this.context.save();
+                    
+                    // Shadow
+                    if (tile.angle > 0.05) {
+                        this.context.shadowColor = "rgba(0, 0, 0, 0.2)";
+                        this.context.shadowBlur = radius * 0.15;
+                    }
+
+                    // Face Gradient
+                    var grad = this.context.createRadialGradient(drawX + lightShiftX, drawY + lightShiftY, radius * 0.05, drawX, drawY, radius);
+                    grad.addColorStop(0, tile_style.colors.light);
+                    grad.addColorStop(1, tile_style.colors.base);
+                    
+                    this.context.fillStyle = grad;
+                    this.context.beginPath();
+                    this.context.moveTo(triangle[0].x, triangle[0].y);
+                    for (var k = 1; k < triangle.length; k++) this.context.lineTo(triangle[k].x, triangle[k].y);
+                    this.context.closePath();
+                    this.context.fill();
+
+                    // Optimized Double Stroke Border
+                    this.context.strokeStyle = "rgba(0, 0, 0, 0.1)";
+                    this.context.lineWidth = 3;
+                    this.context.stroke();
+                    this.context.strokeStyle = "rgba(255, 255, 255, 0.5)";
+                    this.context.lineWidth = 1;
+                    this.context.stroke();
+
+                    this.context.restore();
+
+                    // FIXED: Draw text at textPos, not center.x/y!
+                    drawTextTransformed(this.context, tile.value, textPos.x, textPos.y, tile_style.font, tile_style.font_style, textMatrix);
                 }
-                x += size / 2;
             }
         }
     }
@@ -368,12 +277,6 @@ CanvasView.prototype.requestAnimationFrame = function () {
     requestAnimationFrame(function () {
         self.renderAnimation();
     });
-};
-
-CanvasView.prototype.draw = function () {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.drawBoard();
-    this.drawTiles();
 };
 
 CanvasView.prototype.gameOver = function () {
