@@ -223,40 +223,28 @@ CanvasView.prototype.drawTiles = function () {
 
                         if (this.grid[i][j].angle && this.grid[i][j].move_direction !== null) {
                             // Find the "Raised Tip" geometrically.
-                            // The two vertices on the hinge hardly move. The tip moves the most.
-                            var tipIndex = 0;
+                            // The two vertices on the hinge hardly move. The tip moves the most.                            var tipIndex = 0;
                             var maxDistSq = -1;
                             for (var k = 0; k < 3; k++) {
                                 var dx = triangle[k].x - flat_triangle[k].x;
                                 var dy = triangle[k].y - flat_triangle[k].y;
-                                var distSq = dx * dx + dy * dy; // Distance squared
+                                var distSq = dx * dx + dy * dy;
                                 if (distSq > maxDistSq) {
                                     maxDistSq = distSq;
                                     tipIndex = k;
                                 }
                             }
-
-                            // Target the physical raised tip
                             var tipX = triangle[tipIndex].x;
                             var tipY = triangle[tipIndex].y;
-
-                            // Get the vector from the 2D center to the 2D raised tip
                             var vecX = tipX - centerX;
                             var vecY = tipY - centerY;
-
-                            // Shift the light along that vector based on the tilt
                             var tiltIntensity = Math.sin(this.grid[i][j].angle);
-
-                            // 0.85 keeps the center of the glow slightly inside the tip
                             lightShiftX = vecX * tiltIntensity * 0.85;
                             lightShiftY = vecY * tiltIntensity * 0.85;
                         }
 
-                        // 2. GRADIENT
+                        // 2. GRADIENT & SHADOW PREP
                         var tiltIntensity = Math.sin(this.grid[i][j].angle);
-
-                        // Calculate a "shadow" color by slightly darkening the base
-                        // You could add a helper to your TileStyle or just use rgba overlay
                         var shadowOpacity = tiltIntensity * 0.4;
 
                         var grad = this.context.createRadialGradient(
@@ -265,7 +253,7 @@ CanvasView.prototype.drawTiles = function () {
                         );
 
                         if (this.debug) {
-                            grad.addColorStop(0, '#ff0000'); // RED DEBUG HOTSPOT
+                            grad.addColorStop(0, '#ff0000');
                             grad.addColorStop(0.4, tile_style.colors.light);
                             grad.addColorStop(1, tile_style.colors.base);
                         } else {
@@ -273,8 +261,18 @@ CanvasView.prototype.drawTiles = function () {
                             grad.addColorStop(0.7, tile_style.colors.base);
                             grad.addColorStop(1, "rgba(0,0,0," + shadowOpacity + ")");
                         }
+// START SHADOW CONTEXT
+                        this.context.save(); 
 
+                        // 1. Shadow logic (only apply if tilted)
+                        if (this.grid[i][j].angle > 0) {
+                            this.context.shadowColor = "rgba(0, 0, 0, " + (tiltIntensity * 0.4) + ")";
+                            this.context.shadowBlur = radius * 0.25 * tiltIntensity;
+                            this.context.shadowOffsetX = lightShiftX * 0.2;
+                            this.context.shadowOffsetY = lightShiftY * 0.2;
+                        }
 
+                        // 2. DRAW THE TILE FACE (Background)
                         this.context.fillStyle = grad;
                         this.context.beginPath();
                         this.context.moveTo(triangle[0].x, triangle[0].y);
@@ -282,20 +280,23 @@ CanvasView.prototype.drawTiles = function () {
                             this.context.lineTo(triangle[k].x, triangle[k].y);
                         }
                         this.context.closePath();
-                        this.context.fillStyle = grad;
                         this.context.fill();
-                        // 2. DRAW THE BORDER (Jewel Edge)
-                        this.context.lineJoin = "round"; // Softens the sharp triangle corners slightly for a polished look
 
-                        // Inner Stroke: Thicker, faint dark bevel (creates depth)
+                        // 3. DRAW THE BORDER (Jewel Edge)
+                        this.context.lineJoin = "round";
+                        
+                        // Dark Bevel (Inside)
                         this.context.strokeStyle = "rgba(0, 0, 0, 0.15)";
                         this.context.lineWidth = 4;
                         this.context.stroke();
 
-                        // Outer Stroke: Thinner, bright specular highlight (catches the light)
+                        // Highlight (Outer Rim)
                         this.context.strokeStyle = "rgba(255, 255, 255, 0.7)";
                         this.context.lineWidth = 1.5;
                         this.context.stroke();
+
+                        // 4. RESTORE BEFORE TEXT (prevents blurry numbers)
+                        this.context.restore();
                         // 3. DRAW THE TEXT
                         drawTextTransformed(this.context, this.grid[i][j].value, textCenter.x, textCenter.y, tile_style.font, tile_style.font_style, textMatrix);
                     }
@@ -370,6 +371,7 @@ CanvasView.prototype.requestAnimationFrame = function () {
 };
 
 CanvasView.prototype.draw = function () {
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.drawBoard();
     this.drawTiles();
 };
