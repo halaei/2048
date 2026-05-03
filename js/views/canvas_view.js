@@ -285,10 +285,17 @@ CanvasView.prototype.drawTiles = function () {
                         this.context.fillStyle = grad;
                         this.context.fill();
                         // 2. DRAW THE BORDER (Jewel Edge)
-                        this.context.strokeStyle = "rgba(255, 255, 255, 0.4)";
-                        this.context.lineWidth = 1.5;
+                        this.context.lineJoin = "round"; // Softens the sharp triangle corners slightly for a polished look
+
+                        // Inner Stroke: Thicker, faint dark bevel (creates depth)
+                        this.context.strokeStyle = "rgba(0, 0, 0, 0.15)";
+                        this.context.lineWidth = 4;
                         this.context.stroke();
 
+                        // Outer Stroke: Thinner, bright specular highlight (catches the light)
+                        this.context.strokeStyle = "rgba(255, 255, 255, 0.7)";
+                        this.context.lineWidth = 1.5;
+                        this.context.stroke();
                         // 3. DRAW THE TEXT
                         drawTextTransformed(this.context, this.grid[i][j].value, textCenter.x, textCenter.y, tile_style.font, tile_style.font_style, textMatrix);
                     }
