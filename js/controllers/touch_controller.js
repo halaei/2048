@@ -3,7 +3,9 @@ function TouchController(view_div)
     this.view_div = view_div;
     this.start_position = null;
     this.hinting_direction = null;
-    this.min_radius = view_div.width / 5;
+    // Use the actual CSS display width (clientWidth) or fallback to logical attribute
+    var cssWidth = view_div.clientWidth || parseInt(view_div.getAttribute("width") || 500, 10);
+    this.min_radius = cssWidth / 5;
     var self = this;
     this.setEventHandlers = function () {
 
