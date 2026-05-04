@@ -29,17 +29,49 @@ function haveFun(size)
     var score = game_div.getElementsByClassName("score")[0];
     var highscore = game_div.getElementsByClassName("highscore")[0];
     var storage = new LocalStorageManager(conf.namespace);
-	return new Game(
+// --- NEW: Inject the FPS display element ---
+    var fpsDisplay = document.createElement("div");
+    fpsDisplay.id = "fps-display";
+    fpsDisplay.innerText = "0 FPS";
+    document.body.appendChild(fpsDisplay);
+
+    var canvasView = new CanvasView(view, size, {
+        slow: false,
+        pfs: 60,
+        hotspot: false,
+        log_fps: false, // Default is false[cite: 16]
+    });
+
+    // --- NEW: Secret Debug Mode Logic ---
+    var tapTimes = [];
+    highscore.addEventListener('pointerdown', function(e) {
+        var now = Date.now();
+        tapTimes.push(now);
+        
+        // Remove taps older than 3 seconds (3000ms)
+        tapTimes = tapTimes.filter(t => now - t <= 3000);
+        
+        // If 10 taps remain in the array, activate!
+        if (tapTimes.length >= 10) {
+            tapTimes = []; // Reset the counter
+            
+            // Toggle the visibility and state
+            fpsDisplay.style.display = "block";
+            canvasView.debug.log_fps = true;
+            
+            // Initialize the FPS tick if it wasn't done in the constructor
+            if (!canvasView.fpsTick) {
+                canvasView.fpsTick = { lastTime: performance.now(), frames: 0 };
+            }
+            
+            console.log("Secret Debug Mode Activated");
+        }
+    });
+    return new Game(
 		new Grid(size),
 		new StatusLog(storage),
 		[new KeyboardController(document), new TouchController(view), new Reset(reset)],
-		new CanvasView(view, size, 
-            {
-                slow: false,
-                pfs: 60,
-                hotspot: false,
-                log_fps: false,
-            }),
+		canvasView,
         new Scorboard(score, highscore, 0, storage),
         conf
     );

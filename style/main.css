@@ -30,6 +30,8 @@ h1.title {
 .scoreboard {
     float: right;
     text-align: right;
+    user-select: none;
+    touch-action: manipulation;
 }
 
 .score, .highscore {
@@ -414,4 +416,16 @@ hr {
 @keyframes fade-in {
     0% { opacity: 0; transform: scale(0.8); }
     100% { opacity: 1; transform: scale(1); }
+}
+
+/* Secret Debug Mode FPS Display */
+#fps-display {
+    position: fixed;
+    top: 10px; /* Move it to the top corner so it doesn't block the game */
+    left: 10px;
+    font-size: 40px; /* Smaller and more practical for mobile */
+    color: rgba(255, 0, 0, 0.5); /* Semi-transparent red */
+    z-index: 9999; /* Force it to the absolute front */
+    pointer-events: none;
+    display: none;
 }

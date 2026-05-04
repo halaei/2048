@@ -293,10 +293,23 @@ CanvasView.prototype.renderAnimation = function () {
 };
 
 CanvasView.prototype.logAndResetFPS = function (now, isFinal) {
-    var label = isFinal ? "Final Sequence FPS: " : "Realized FPS: ";
-    var color = isFinal ? "#E67E22" : "#27AE60"; // Orange for final, Green for continuous
-    console.log("%c " + label + this.fpsTick.frames, "color: " + color + "; font-weight: bold;");
+    var elapsed = now - this.fpsTick.lastTime;
+    var realizedFPS = this.fpsTick.frames;
+
+    // If it's a short sequence, calculate the actual RATE
+    if (isFinal && elapsed > 0) {
+        realizedFPS = Math.round((this.fpsTick.frames / elapsed) * 1000);
+    }
+
+    var label = isFinal ? "Final Sequence Rate: " : "Realized FPS: ";
+    console.log("%c " + label + realizedFPS, "color: #27AE60; font-weight: bold;");
     
+    // Update your debug DIV if you have it
+    var domDisplay = document.getElementById("fps-display");
+    if (domDisplay && this.debug.log_fps) {
+        domDisplay.innerText = realizedFPS + " FPS";
+    }
+
     this.fpsTick.frames = 0;
     this.fpsTick.lastTime = now;
 };
