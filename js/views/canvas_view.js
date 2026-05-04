@@ -367,10 +367,10 @@ CanvasView.prototype.handleMoveEvent = function (event) {
 };
 
 CanvasView.prototype.getNewAnimationStartTime = function () {
-    var cur = performance.now();
+var cur = performance.now();
     if (this.animations.length) {
         var a = this.animations[this.animations.length - 1];
-        return Math.max(cur, a.start_time + a.duration + Math.ceil(1000 / this.fps));
+        return Math.max(cur, a.start_time + a.duration); 
     }
     return cur;
 };

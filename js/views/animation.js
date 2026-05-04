@@ -132,8 +132,7 @@ Animation.prototype.finished = function(time)
 
 Animation.prototype.getFrame = function(grid, time)
 {
-    var t = Math.min(this.duration, time - this.start_time);
-
+    var t = Math.max(0, Math.min(this.duration, time - this.start_time));
     //update new grid applying animation components
     var angle = Math.PI * t / this.duration;
     if(this.merge_hint) {
