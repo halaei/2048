@@ -1,6 +1,7 @@
-function CanvasView(canvas, gridSize) {
+function CanvasView(canvas, gridSize, debug) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d");
+    this.debug = debug || {};
 
     // 1. CAPTURE & LOCK DIMENSIONS
     this.logicalWidth = parseInt(canvas.getAttribute("width") || 500, 10);
@@ -16,7 +17,13 @@ function CanvasView(canvas, gridSize) {
     this.initGrid();
     this.center = { x: this.logicalWidth / 2, y: this.logicalHeight / 2 };
     this.radius = this.center.x - 6;
-    this.fps = 30;
+    this.fps = this.debug.fps || 30;
+    if (this.debug.log_fps) {
+        this.fpsTick = {
+            lastTime: performance.now(),
+            frames: 0
+        };
+    }
 
     // 3. CACHE THE BOARD (using fixed dpr)
     this.boardCache = document.createElement('canvas');
@@ -188,8 +195,14 @@ CanvasView.prototype.drawTiles = function () {
 
                     // Face Gradient
                     var grad = this.context.createRadialGradient(drawX + lightShiftX, drawY + lightShiftY, radius * 0.05, drawX, drawY, radius);
-                    grad.addColorStop(0, tile_style.colors.light);
-                    grad.addColorStop(1, tile_style.colors.base);
+                    if (this.debug.hotspot) {
+                            grad.addColorStop(0, '#ff0000'); // RED DEBUG HOTSPOT
+                            grad.addColorStop(0.4, tile_style.colors.light);
+                            grad.addColorStop(1, tile_style.colors.base);
+                    } else {
+                        grad.addColorStop(0, tile_style.colors.light);
+                        grad.addColorStop(1, tile_style.colors.base);
+                    }
                     
                     this.context.fillStyle = grad;
                     this.context.beginPath();
@@ -217,13 +230,42 @@ CanvasView.prototype.drawTiles = function () {
 };
 
 CanvasView.prototype.renderAnimation = function () {
-    var time = new Date().getTime();
-    if (this.animations.length && this.animations[0].finished(time)) {
+    // 1. EARLY EXIT: Don't do anything if there are no animations.
+    // This prevents counting "phantom" frames while idle.
+    if (this.animations.length === 0) {
+        return;
+    }
+
+    var time = performance.now();
+
+    // 2. FPS LOGGING
+    if (this.debug.log_fps) {
+        // If this is the start of a sequence (frames == 0), 
+        // reset lastTime to NOW so we don't count the idle time.
+        if (this.fpsTick.frames === 0) {
+            this.fpsTick.lastTime = time;
+        }
+
+        this.fpsTick.frames++;
+        
+        if (time - this.fpsTick.lastTime >= 1000) {
+            this.logAndResetFPS(time);
+        }
+    }
+
+    // 3. ANIMATION LOGIC
+    if (this.animations[0].finished(time)) {
         var a = this.animations.shift();
         a.commit(this.grid);
         this.draw();
-        // Check if this was the last animation and a win is pending
+
         if (this.animations.length === 0) {
+            // Log the leftovers for this specific sequence
+            if (this.debug.log_fps && this.fpsTick.frames > 0) {
+                this.logAndResetFPS(time, true);
+            }
+
+            // Handle Messages
             if (this.pendingWinMessage) {
                 this.showGameMessage("The Apex Reached!", false);
                 this.pendingWinMessage = false;
@@ -231,21 +273,28 @@ CanvasView.prototype.renderAnimation = function () {
                 this.showGameMessage("Game Over!", true);
                 this.pendingGameOverMessage = false;
             }
+            // IMPORTANT: Stop the loop here if no more animations
+            return; 
         }
         this.requestAnimationFrame();
         return;
     }
 
-    if (this.animations.length == 0) {
-        return;
-    }
-
+    // 4. RENDER FRAME
     this.animations[0].begin(this.grid);
     this.animations[0].getFrame(this.grid, time);
     this.draw();
 
     this.requestAnimationFrame();
+};
 
+CanvasView.prototype.logAndResetFPS = function (now, isFinal) {
+    var label = isFinal ? "Final Sequence FPS: " : "Realized FPS: ";
+    var color = isFinal ? "#E67E22" : "#27AE60"; // Orange for final, Green for continuous
+    console.log("%c " + label + this.fpsTick.frames, "color: " + color + "; font-weight: bold;");
+    
+    this.fpsTick.frames = 0;
+    this.fpsTick.lastTime = now;
 };
 
 CanvasView.prototype.showGameMessage = function(text, isGameOver) {
@@ -296,7 +345,7 @@ CanvasView.prototype.handleMoveEvent = function (event) {
 };
 
 CanvasView.prototype.getNewAnimationStartTime = function () {
-    var cur = new Date().getTime();
+    var cur = performance.now();
     if (this.animations.length) {
         var a = this.animations[this.animations.length - 1];
         return Math.max(cur, a.start_time + a.duration + Math.ceil(1000 / this.fps));
@@ -305,7 +354,7 @@ CanvasView.prototype.getNewAnimationStartTime = function () {
 };
 
 CanvasView.prototype.handleStepEvent = function (event) {
-    var animation = new Animation(this.debug ? 2000 : 200, this.getNewAnimationStartTime(), false);
+    var animation = new Animation(this.debug.slow ? 2000 : 200, this.getNewAnimationStartTime(), false);
     if (this.merge_hint) {
         animation.duration *= 3 / 4;
         animation.merge_hint = true;
@@ -356,7 +405,7 @@ CanvasView.prototype.initGrid = function () {
 
 CanvasView.prototype.pushUpdateStatusAnimation = function (event) {
     var v = 0;
-    var a = new Animation(this.debug ? 2000 : 200, this.getNewAnimationStartTime(), true);
+    var a = new Animation(this.debug.slow ? 2000 : 200, this.getNewAnimationStartTime(), true);
     for (var i = 0; i < this.gridSize; i++) {
         for (var j = 0; j < 2 * i + 1; j++) {
             if (event.values[v]) {
@@ -388,7 +437,7 @@ CanvasView.prototype.handleBeginMoveHint = function (event) {
 
     this.clearHints();
 
-    var animation = new Animation(this.debug ? 500 : 50, this.getNewAnimationStartTime(), false);
+    var animation = new Animation(this.debug.slow ? 500 : 50, this.getNewAnimationStartTime(), false);
     for (var i = 0; i < event.previews.length; i++) {
         animation.hints.push(new HintAnimationComponent(event.previews[i].cell, event.previews[i].neighbor,
             event.previews[i].move_direction, event.previews[i].cell.tile.value));

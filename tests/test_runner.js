@@ -44,24 +44,7 @@ const Expectation = require('./expectation.js');
 // Initialize event prototypes for Node.js environment
 globalThis.initEventPrototypes();
 
-// Add requestAnimationFrame and cancelAnimationFrame polyfills for Node.js
-// For testing, make animations synchronous to avoid timing issues
-let virtualTime = Date.now();
-Date.prototype.getTime = function() {
-    virtualTime += 50; 
-    return virtualTime;
-};
 
-// Add requestAnimationFrame and cancelAnimationFrame polyfills for Node.js
-global.requestAnimationFrame = function(callback) {
-    // setImmediate pushes the render to the event loop, 
-    // allowing the game logic to finish instantly.
-    setImmediate(callback); 
-    return 1; 
-};
-global.cancelAnimationFrame = function(id) {
-    // No-op for testing
-};
 
 console.log('🚀 Running 2048 Game Tests...\n');
 
@@ -111,6 +94,24 @@ const TestMicroGame = require('./integration/test_micro_game.js');
 // Instantiate and run all test classes
 console.log('🚀 Running tests...\n');
 async function runAll() {
+    // Add requestAnimationFrame and cancelAnimationFrame polyfills for Node.js
+    // For testing, make animations synchronous to avoid timing issues
+    let virtualTime = performance.now();
+    global.performance.now = function() {
+        virtualTime += 50;
+        return virtualTime;
+    };
+
+    // Add requestAnimationFrame and cancelAnimationFrame polyfills for Node.js
+    global.requestAnimationFrame = function(callback) {
+        // setImmediate pushes the render to the event loop, 
+        // allowing the game logic to finish instantly.
+        setImmediate(callback); 
+        return 1; 
+    };
+    global.cancelAnimationFrame = function(id) {
+        // No-op for testing
+    };
     await new TestMock().run();
     await new TestGrid3().run();
     await new TestGrid().run();

@@ -33,7 +33,13 @@ function haveFun(size)
 		new Grid(size),
 		new StatusLog(storage),
 		[new KeyboardController(document), new TouchController(view), new Reset(reset)],
-		new CanvasView(view, size),
+		new CanvasView(view, size, 
+            {
+                slow: false,
+                pfs: 60,
+                hotspot: false,
+                log_fps: false,
+            }),
         new Scorboard(score, highscore, 0, storage),
         conf
     );
