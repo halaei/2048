@@ -33,6 +33,7 @@ function CanvasView(canvas, gridSize, debug) {
 
     this.game_over = false;
     this.animations = [];
+    this.isLoopRunning = false;
 }
 
 CanvasView.prototype.renderBoardToCache = function () {
@@ -233,6 +234,7 @@ CanvasView.prototype.renderAnimation = function () {
     // 1. EARLY EXIT: Don't do anything if there are no animations.
     // This prevents counting "phantom" frames while idle.
     if (this.animations.length === 0) {
+        this.isLoopRunning = false;
         return;
     }
 
@@ -274,8 +276,10 @@ CanvasView.prototype.renderAnimation = function () {
                 this.pendingGameOverMessage = false;
             }
             // IMPORTANT: Stop the loop here if no more animations
+            this.isLoopRunning = false;
             return; 
         }
+        this.isLoopRunning = false;
         this.requestAnimationFrame();
         return;
     }
@@ -284,7 +288,7 @@ CanvasView.prototype.renderAnimation = function () {
     this.animations[0].begin(this.grid);
     this.animations[0].getFrame(this.grid, time);
     this.draw();
-
+    this.isLoopRunning = false;
     this.requestAnimationFrame();
 };
 
@@ -322,6 +326,11 @@ CanvasView.prototype.showGameMessage = function(text, isGameOver) {
 };
 
 CanvasView.prototype.requestAnimationFrame = function () {
+    // 1. If a loop is already running, do nothing and return[cite: 13]
+    if (this.isLoopRunning) return; 
+
+    // 2. Otherwise, lock the gate[cite: 13]
+    this.isLoopRunning = true;
     var self = this;
     requestAnimationFrame(function () {
         self.renderAnimation();
