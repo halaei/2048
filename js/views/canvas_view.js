@@ -159,8 +159,8 @@ CanvasView.prototype.drawTiles = function () {
                     // 3D Geometry calculations
                     if (tile.angle > 0.01 && tile.move_direction !== null) {
                         var axis = axisOfRotation(new GridLocation(i, j), tile.move_direction);
-                        var flat_triangle = JSON.parse(JSON.stringify(triangle));
-                        
+                        var flat_triangle = [...triangle];
+
                         triangle = rotatePolygon2D(triangle, axis.point, axis.direction, tile.angle);
                         textMatrix = getRotationTransform2D(axis.point, axis.direction, tile.angle, true);
 
