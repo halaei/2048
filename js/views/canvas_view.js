@@ -18,11 +18,9 @@ function CanvasView(canvas, gridSize, debug) {
     this.center = { x: this.logicalWidth / 2, y: this.logicalHeight / 2 };
     this.radius = this.center.x - 6;
     this.fps = this.debug.fps || 30;
+    this.perfMonitor = new PerformanceMonitor("fps-display");
     if (this.debug.log_fps) {
-        this.fpsTick = {
-            lastTime: performance.now(),
-            frames: 0
-        };
+        this.perfMonitor.toggle(true);
     }
 
     // 3. CACHE THE BOARD (using fixed dpr)
@@ -240,20 +238,11 @@ CanvasView.prototype.renderAnimation = function () {
 
     var time = performance.now();
 
-    // 2. FPS LOGGING
-    if (this.debug.log_fps) {
-        // If this is the start of a sequence (frames == 0), 
-        // reset lastTime to NOW so we don't count the idle time.
-        if (this.fpsTick.frames === 0) {
-            this.fpsTick.lastTime = time;
-        }
+    // 1. Check if this is the final frame of the sequence
+    var isFinalFrame = this.animations[0].finished(time) && this.animations.length === 1;
 
-        this.fpsTick.frames++;
-        
-        if (time - this.fpsTick.lastTime >= 1000) {
-            this.logAndResetFPS(time);
-        }
-    }
+    // 2. Delegate to the Performance Monitor
+    this.perfMonitor.tick(time, isFinalFrame);
 
     // 3. ANIMATION LOGIC
     if (this.animations[0].finished(time)) {
@@ -262,11 +251,6 @@ CanvasView.prototype.renderAnimation = function () {
         this.draw();
 
         if (this.animations.length === 0) {
-            // Log the leftovers for this specific sequence
-            if (this.debug.log_fps && this.fpsTick.frames > 0) {
-                this.logAndResetFPS(time, true);
-            }
-
             // Handle Messages
             if (this.pendingWinMessage) {
                 this.showGameMessage("The Apex Reached!", false);
@@ -290,28 +274,6 @@ CanvasView.prototype.renderAnimation = function () {
     this.draw();
     this.isLoopRunning = false;
     this.requestAnimationFrame();
-};
-
-CanvasView.prototype.logAndResetFPS = function (now, isFinal) {
-    var elapsed = now - this.fpsTick.lastTime;
-    var realizedFPS = this.fpsTick.frames;
-
-    // If it's a short sequence, calculate the actual RATE
-    if (isFinal && elapsed > 0) {
-        realizedFPS = Math.round((this.fpsTick.frames / elapsed) * 1000);
-    }
-
-    var label = isFinal ? "Final Sequence Rate: " : "Realized FPS: ";
-    console.log("%c " + label + realizedFPS, "color: #27AE60; font-weight: bold;");
-    
-    // Update your debug DIV if you have it
-    var domDisplay = document.getElementById("fps-display");
-    if (domDisplay && this.debug.log_fps) {
-        domDisplay.innerText = realizedFPS + " FPS";
-    }
-
-    this.fpsTick.frames = 0;
-    this.fpsTick.lastTime = now;
 };
 
 CanvasView.prototype.showGameMessage = function(text, isGameOver) {

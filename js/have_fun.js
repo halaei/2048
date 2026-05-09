@@ -60,9 +60,7 @@ function haveFun(size)
             canvasView.debug.log_fps = true;
             
             // Initialize the FPS tick if it wasn't done in the constructor
-            if (!canvasView.fpsTick) {
-                canvasView.fpsTick = { lastTime: performance.now(), frames: 0 };
-            }
+            canvasView.perfMonitor.toggle(true);
             
             console.log("Secret Debug Mode Activated");
         }
