@@ -3,6 +3,10 @@ function CanvasView(canvas, gridSize, debug) {
     this.context = canvas.getContext("2d");
     this.debug = debug || {};
 
+    // Grab the background canvas
+    this.bgCanvas = canvas.parentElement.querySelector('.canvas_background');
+    this.bgContext = this.bgCanvas.getContext("2d");
+
     // 1. CAPTURE & LOCK DIMENSIONS
     this.logicalWidth = parseInt(canvas.getAttribute("width") || 500, 10);
     this.logicalHeight = parseInt(canvas.getAttribute("height") || 500, 10);
@@ -13,52 +17,50 @@ function CanvasView(canvas, gridSize, debug) {
     this.canvas.height = this.logicalHeight * this.dpr;
     this.context.scale(this.dpr, this.dpr);
 
+    this.bgCanvas.width = this.logicalWidth * this.dpr;
+    this.bgCanvas.height = this.logicalHeight * this.dpr;
+    this.bgContext.scale(this.dpr, this.dpr);
+
     this.gridSize = gridSize;
-    this.initGrid();
     this.center = { x: this.logicalWidth / 2, y: this.logicalHeight / 2 };
     this.radius = this.center.x - 6;
+
+    // 3. DRAW TO BACKGROUND LAYER ONCE
+    this.makeBoard();
+    this.renderBoardToBackground();
+
+    this.initGrid();
     this.fps = this.debug.fps || 30;
     this.perfMonitor = new PerformanceMonitor("fps-display");
     if (this.debug.log_fps) {
         this.perfMonitor.toggle(true);
     }
 
-    // 3. CACHE THE BOARD (using fixed dpr)
-    this.boardCache = document.createElement('canvas');
-    this.boardCache.width = this.canvas.width;
-    this.boardCache.height = this.canvas.height;
-    this.renderBoardToCache();
-
     this.game_over = false;
     this.animations = [];
     this.isLoopRunning = false;
 }
 
-CanvasView.prototype.renderBoardToCache = function () {
-    var tempCtx = this.boardCache.getContext('2d');
-    tempCtx.scale(this.dpr, this.dpr); // Use locked dpr
-    
-    this.makeBoard(); 
+CanvasView.prototype.renderBoardToBackground = function () {
+    var ctx = this.bgContext;
+    // Note: We don't need to scale here because we did it in the constructor
+
     // Draw the main board background
-    drawPolygon(tempCtx, this.polygons[0].vertex_list, '#bbada0', '#ffffff');
+    drawPolygon(ctx, this.polygons[0].vertex_list, '#bbada0', '#ffffff');
 
     for (var i = 1; i < this.polygons.length; i++) {
         var points = this.polygons[i].vertex_list;
-        drawPolygon(tempCtx, points, '#ffffff', '#ffffff');
-        tempCtx.strokeStyle = '#e0adad';
-        tempCtx.lineWidth = 2;
-        tempCtx.stroke();
+        drawPolygon(ctx, points, '#ffffff', '#ffffff');
+        ctx.strokeStyle = '#e0adad';
+        ctx.lineWidth = 2;
+        ctx.stroke();
     }
 };
 
 CanvasView.prototype.draw = function () {
     // Clear using logical dimensions (the scale(dpr) handles the rest)
     this.context.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
-    
-    // Draw the cached board
-    // Since the context is scaled by dpr, drawing at logical size fills the buffer
-    this.context.drawImage(this.boardCache, 0, 0, this.logicalWidth, this.logicalHeight);
-    
+
     this.drawTiles();
 };
 
@@ -135,6 +137,7 @@ CanvasView.prototype.drawTiles = function () {
         }
         return null;
     }
+    var styleCache = {};
 
     // --- 2. MAIN DRAW LOOP ---
     for (var anglie_filter = 0; anglie_filter < 2; anglie_filter++) {
@@ -144,32 +147,37 @@ CanvasView.prototype.drawTiles = function () {
                 if (!tile.value) continue;
 
                 // Pass 0: Flat or rising tiles. Pass 1: Tiles falling into new slots.
+// Pass 0: Flat or rising tiles. Pass 1: Tiles falling into new slots.
                 if ((anglie_filter && tile.angle > Math.PI / 2) || (!anglie_filter && tile.angle <= Math.PI / 2)) {
                     var center = getCellCenter(i, j);
-                    var tile_style = new TileStyle(tile.value, 1);
+                    
+                    // FIXED 1: Get from Cache instead of 'new TileStyle()'
+                    if (!styleCache[tile.value]) {
+                        styleCache[tile.value] = new TileStyle(tile.value, 1);
+                    }
+                    var tile_style = styleCache[tile.value];
+                    
                     var triangle = makeRegularPolygon(3, radius * .85, center.x, center.y, j % 2 ? Math.PI / 2 : - Math.PI / 2);
                     
                     var textMatrix = [1, 0, 0, 1, 0, 0];
                     var lightShiftX = 0, lightShiftY = -radius * 0.1;
                     var drawX = center.x, drawY = center.y;
-                    var textPos = { x: center.x, y: center.y }; // Default text position
+                    var textPos = { x: center.x, y: center.y }; 
 
                     // 3D Geometry calculations
                     if (tile.angle > 0.01 && tile.move_direction !== null) {
                         var axis = axisOfRotation(new GridLocation(i, j), tile.move_direction);
-                        var flat_triangle = [...triangle];
+                        var flat_triangle = [...triangle]; // Still allocating one array here, but much lighter
 
                         triangle = rotatePolygon2D(triangle, axis.point, axis.direction, tile.angle);
                         textMatrix = getRotationTransform2D(axis.point, axis.direction, tile.angle, true);
 
-                        // If flipped past 90 degrees, calculate the center of the next slot
                         if (tile.angle > Math.PI / 2) {
                             var nextLoc = getNextLocation(new GridLocation(i, j), tile.move_direction);
                             var nextCenter = nextLoc ? getCellCenter(nextLoc.row, nextLoc.rank) : null;
                             if (nextCenter) textPos = nextCenter;
                         }
 
-                        // Lighting "Center" (Physical center of the rotated face)
                         drawX = (triangle[0].x + triangle[1].x + triangle[2].x) / 3;
                         drawY = (triangle[0].y + triangle[1].y + triangle[2].y) / 3;
                         
@@ -186,22 +194,23 @@ CanvasView.prototype.drawTiles = function () {
 
                     this.context.save();
                     
-                    // Shadow
+                    // FIXED 2: The "Fake" Drop Shadow (No shadowBlur!)
                     if (tile.angle > 0.05) {
-                        this.context.shadowColor = "rgba(0, 0, 0, 0.2)";
-                        this.context.shadowBlur = radius * 0.15;
+                        var shadowOffset = radius * 0.15 * Math.sin(tile.angle);
+                        this.context.fillStyle = "rgba(0, 0, 0, 0.2)";
+                        this.context.beginPath();
+                        this.context.moveTo(triangle[0].x, triangle[0].y + shadowOffset);
+                        for (var k = 1; k < triangle.length; k++) {
+                            this.context.lineTo(triangle[k].x, triangle[k].y + shadowOffset);
+                        }
+                        this.context.closePath();
+                        this.context.fill();
                     }
 
                     // Face Gradient
                     var grad = this.context.createRadialGradient(drawX + lightShiftX, drawY + lightShiftY, radius * 0.05, drawX, drawY, radius);
-                    if (this.debug.hotspot) {
-                            grad.addColorStop(0, '#ff0000'); // RED DEBUG HOTSPOT
-                            grad.addColorStop(0.4, tile_style.colors.light);
-                            grad.addColorStop(1, tile_style.colors.base);
-                    } else {
-                        grad.addColorStop(0, tile_style.colors.light);
-                        grad.addColorStop(1, tile_style.colors.base);
-                    }
+                    grad.addColorStop(0, tile_style.colors.light);
+                    grad.addColorStop(1, tile_style.colors.base);
                     
                     this.context.fillStyle = grad;
                     this.context.beginPath();
@@ -220,7 +229,7 @@ CanvasView.prototype.drawTiles = function () {
 
                     this.context.restore();
 
-                    // FIXED: Draw text at textPos, not center.x/y!
+                    // Draw text
                     drawTextTransformed(this.context, tile.value, textPos.x, textPos.y, tile_style.font, tile_style.font_style, textMatrix);
                 }
             }
